@@ -1,0 +1,17 @@
+[
+  {
+    "content": "Create design_brief.md for Werkzeugverwaltung dashboard",
+    "status": "completed",
+    "activeForm": "Creating design_brief.md for Werkzeugverwaltung dashboard"
+  },
+  {
+    "content": "Implement Dashboard.tsx following design_brief.md",
+    "status": "completed",
+    "activeForm": "Implementing Dashboard.tsx"
+  },
+  {
+    "content": "Build and deploy using deploy_to_github",
+    "status": "in_progress",
+    "activeForm": "Building and deploying to GitHub"
+  }
+]

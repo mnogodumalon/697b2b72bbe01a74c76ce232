@@ -2,6 +2,64 @@
   "appgroup_id": "697b2b72bbe01a74c76ce232",
   "appgroup_name": "Werkzeugverwaltung",
   "apps": {
+    "lagerorte": {
+      "app_id": "697b2b40f8a1c1f639e5c8be",
+      "name": "Lagerorte",
+      "controls": {
+        "beschreibung": {
+          "identifier": "beschreibung",
+          "label": "Beschreibung",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`).",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "ortsbezeichnung": {
+          "identifier": "ortsbezeichnung",
+          "label": "Ortsbezeichnung",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "typ": {
+          "identifier": "typ",
+          "label": "Typ",
+          "type": "lookup",
+          "subtype": "select",
+          "fulltype": "lookup/select",
+          "description": "One selected option of multiple available options (or `null`).\n\nThe available options are defined in the `lookup_data` attribute of this control's LivingApp.\n\nThe field value will be the key in this `lookup_data` attribute or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_data": {
+            "werkstatt": "Werkstatt",
+            "fahrzeug": "Fahrzeug",
+            "baustelle": "Baustelle",
+            "aussenlager": "Au\u00dfenlager",
+            "sonstiges": "Sonstiges"
+          }
+        }
+      }
+    },
     "mitarbeiter": {
       "app_id": "697b2b318bccec961fdb7818",
       "name": "Mitarbeiter",
@@ -45,8 +103,8 @@
           "description": "A string value not longer than 4000 characters (or `null`).",
           "required": null,
           "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
+          "in_mobile_list": true,
+          "in_text": true,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
@@ -59,19 +117,19 @@
           "fulltype": "lookup/select",
           "description": "One selected option of multiple available options (or `null`).\n\nThe available options are defined in the `lookup_data` attribute of this control's LivingApp.\n\nThe field value will be the key in this `lookup_data` attribute or `null`.",
           "required": null,
-          "in_list": true,
+          "in_list": false,
           "in_mobile_list": false,
           "in_text": false,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "planung": "Planung",
-            "lager": "Lager",
-            "verwaltung": "Verwaltung",
             "elektroinstallation": "Elektroinstallation",
             "wartung_service": "Wartung und Service",
-            "bauleitung": "Bauleitung"
+            "bauleitung": "Bauleitung",
+            "planung": "Planung",
+            "lager": "Lager",
+            "verwaltung": "Verwaltung"
           }
         },
         "telefonnummer": {
@@ -83,8 +141,8 @@
           "description": "A valid telephone number. Might include country prefix and should include area code (or `null`).",
           "required": null,
           "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
+          "in_mobile_list": true,
+          "in_text": true,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
@@ -103,64 +161,6 @@
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
-        }
-      }
-    },
-    "lagerorte": {
-      "app_id": "697b2b40f8a1c1f639e5c8be",
-      "name": "Lagerorte",
-      "controls": {
-        "beschreibung": {
-          "identifier": "beschreibung",
-          "label": "Beschreibung",
-          "type": "string",
-          "subtype": "textarea",
-          "fulltype": "string/textarea",
-          "description": "A string value that can contain multiple lines of text (or `null`).",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "ortsbezeichnung": {
-          "identifier": "ortsbezeichnung",
-          "label": "Ortsbezeichnung",
-          "type": "string",
-          "subtype": "text",
-          "fulltype": "string/text",
-          "description": "A string value not longer than 4000 characters (or `null`).",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "typ": {
-          "identifier": "typ",
-          "label": "Typ",
-          "type": "lookup",
-          "subtype": "select",
-          "fulltype": "lookup/select",
-          "description": "One selected option of multiple available options (or `null`).\n\nThe available options are defined in the `lookup_data` attribute of this control's LivingApp.\n\nThe field value will be the key in this `lookup_data` attribute or `null`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_data": {
-            "werkstatt": "Werkstatt",
-            "fahrzeug": "Fahrzeug",
-            "baustelle": "Baustelle",
-            "aussenlager": "Au\u00dfenlager",
-            "sonstiges": "Sonstiges"
-          }
         }
       }
     },
@@ -207,8 +207,8 @@
           "description": "A string value not longer than 4000 characters (or `null`).",
           "required": null,
           "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
+          "in_mobile_list": true,
+          "in_text": true,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
@@ -222,8 +222,8 @@
           "description": "A string value not longer than 4000 characters (or `null`).",
           "required": null,
           "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
+          "in_mobile_list": true,
+          "in_text": true,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
@@ -236,18 +236,18 @@
           "fulltype": "lookup/select",
           "description": "One selected option of multiple available options (or `null`).\n\nThe available options are defined in the `lookup_data` attribute of this control's LivingApp.\n\nThe field value will be the key in this `lookup_data` attribute or `null`.",
           "required": null,
-          "in_list": true,
+          "in_list": false,
           "in_mobile_list": false,
           "in_text": false,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "messgeraet": "Messger\u00e4t",
-            "pruefgeraet": "Pr\u00fcfger\u00e4t",
             "akkuwerkzeug": "Akkuwerkzeug",
             "elektrowerkzeug": "Elektrowerkzeug",
             "handwerkzeug": "Handwerkzeug",
+            "messgeraet": "Messger\u00e4t",
+            "pruefgeraet": "Pr\u00fcfger\u00e4t",
             "leiter": "Leiter",
             "kabel_leitungen": "Kabel und Leitungen",
             "sonstiges": "Sonstiges"
@@ -385,104 +385,6 @@
         }
       }
     },
-    "werkzeugausgabe": {
-      "app_id": "697b2b41d520e5a668295185",
-      "name": "Werkzeugausgabe",
-      "controls": {
-        "mitarbeiter": {
-          "identifier": "mitarbeiter",
-          "label": "Mitarbeiter",
-          "type": "applookup",
-          "subtype": "select",
-          "fulltype": "applookup/select",
-          "description": "A reference to another LivingApp record from a target lookup app (or `null`).\n\nThe field value will be a valid record URL in the form `https://<hostname>/rest/apps/<app-id>/records/<record-id>` or `null`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b318bccec961fdb7818"
-        },
-        "ausgabedatum": {
-          "identifier": "ausgabedatum",
-          "label": "Ausgabedatum",
-          "type": "date",
-          "subtype": "datetimeminute",
-          "fulltype": "date/datetimeminute",
-          "description": "A specific moment in time consisting of year, month, day, hour and minute. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` or `null`.\n\nFor example: `1879-03-14T11:30`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "geplantes_rueckgabedatum": {
-          "identifier": "geplantes_rueckgabedatum",
-          "label": "Geplantes R\u00fcckgabedatum",
-          "type": "date",
-          "subtype": "date",
-          "fulltype": "date/date",
-          "description": "A calendar date consisting of year, month and day. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>` or `null`.\n\nFor example: `1642-12-25`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "verwendungszweck": {
-          "identifier": "verwendungszweck",
-          "label": "Verwendungszweck",
-          "type": "string",
-          "subtype": "text",
-          "fulltype": "string/text",
-          "description": "A string value not longer than 4000 characters (or `null`).",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "notizen": {
-          "identifier": "notizen",
-          "label": "Notizen",
-          "type": "string",
-          "subtype": "textarea",
-          "fulltype": "string/textarea",
-          "description": "A string value that can contain multiple lines of text (or `null`).",
-          "required": null,
-          "in_list": false,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "werkzeug": {
-          "identifier": "werkzeug",
-          "label": "Werkzeug",
-          "type": "applookup",
-          "subtype": "select",
-          "fulltype": "applookup/select",
-          "description": "A reference to another LivingApp record from a target lookup app (or `null`).\n\nThe field value will be a valid record URL in the form `https://<hostname>/rest/apps/<app-id>/records/<record-id>` or `null`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b4092d14994749ca71b"
-        }
-      }
-    },
     "werkzeugrueckgabe": {
       "app_id": "697b2b42b0235053832268ab",
       "name": "Werkzeugr\u00fcckgabe",
@@ -549,11 +451,11 @@
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "einwandfrei": "Einwandfrei",
             "leichte_gebrauchsspuren": "Leichte Gebrauchsspuren",
             "verschmutzt": "Verschmutzt",
             "beschaedigt": "Besch\u00e4digt",
-            "defekt": "Defekt"
+            "defekt": "Defekt",
+            "einwandfrei": "Einwandfrei"
           }
         },
         "beschaedigungen": {
@@ -587,15 +489,188 @@
           "in_expert_search": true
         }
       }
+    },
+    "werkzeugausgabe": {
+      "app_id": "697b2b41d520e5a668295185",
+      "name": "Werkzeugausgabe",
+      "controls": {
+        "mitarbeiter": {
+          "identifier": "mitarbeiter",
+          "label": "Mitarbeiter",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to another LivingApp record from a target lookup app (or `null`).\n\nThe field value will be a valid record URL in the form `https://<hostname>/rest/apps/<app-id>/records/<record-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b318bccec961fdb7818"
+        },
+        "ausgabedatum": {
+          "identifier": "ausgabedatum",
+          "label": "Ausgabedatum",
+          "type": "date",
+          "subtype": "datetimeminute",
+          "fulltype": "date/datetimeminute",
+          "description": "A specific moment in time consisting of year, month, day, hour and minute. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` or `null`.\n\nFor example: `1879-03-14T11:30`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "geplantes_rueckgabedatum": {
+          "identifier": "geplantes_rueckgabedatum",
+          "label": "Geplantes R\u00fcckgabedatum",
+          "type": "date",
+          "subtype": "date",
+          "fulltype": "date/date",
+          "description": "A calendar date consisting of year, month and day. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>` or `null`.\n\nFor example: `1642-12-25`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "verwendungszweck": {
+          "identifier": "verwendungszweck",
+          "label": "Verwendungszweck",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "notizen": {
+          "identifier": "notizen",
+          "label": "Notizen",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`).",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "werkzeug": {
+          "identifier": "werkzeug",
+          "label": "Werkzeug",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to another LivingApp record from a target lookup app (or `null`).\n\nThe field value will be a valid record URL in the form `https://<hostname>/rest/apps/<app-id>/records/<record-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b4092d14994749ca71b"
+        },
+        "bild_1": {
+          "identifier": "bild_1",
+          "label": "Bild 1",
+          "type": "file",
+          "subtype": null,
+          "fulltype": "file",
+          "description": "An uploaded file. (Or `null`/`None`)\n\nThe field value will be a URL to download the file in the form `https://<hostname>/files/<app-id>/data/<record-id>/<control-identifier>/<internal-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "bild_2": {
+          "identifier": "bild_2",
+          "label": "Bild 2",
+          "type": "file",
+          "subtype": null,
+          "fulltype": "file",
+          "description": "An uploaded file. (Or `null`/`None`)\n\nThe field value will be a URL to download the file in the form `https://<hostname>/files/<app-id>/data/<record-id>/<control-identifier>/<internal-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "bild_3": {
+          "identifier": "bild_3",
+          "label": "Bild 3",
+          "type": "file",
+          "subtype": null,
+          "fulltype": "file",
+          "description": "An uploaded file. (Or `null`/`None`)\n\nThe field value will be a URL to download the file in the form `https://<hostname>/files/<app-id>/data/<record-id>/<control-identifier>/<internal-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "dokument_1": {
+          "identifier": "dokument_1",
+          "label": "Dokument 1",
+          "type": "file",
+          "subtype": null,
+          "fulltype": "file",
+          "description": "An uploaded file. (Or `null`/`None`)\n\nThe field value will be a URL to download the file in the form `https://<hostname>/files/<app-id>/data/<record-id>/<control-identifier>/<internal-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "dokument_2": {
+          "identifier": "dokument_2",
+          "label": "Dokument 2",
+          "type": "file",
+          "subtype": null,
+          "fulltype": "file",
+          "description": "An uploaded file. (Or `null`/`None`)\n\nThe field value will be a URL to download the file in the form `https://<hostname>/files/<app-id>/data/<record-id>/<control-identifier>/<internal-id>` or `null`.",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        }
+      }
     }
   },
   "metadata": {
     "apps_list": [
-      "Mitarbeiter",
       "Lagerorte",
+      "Mitarbeiter",
       "Werkzeuge",
-      "Werkzeugausgabe",
-      "Werkzeugr\u00fcckgabe"
+      "Werkzeugr\u00fcckgabe",
+      "Werkzeugausgabe"
     ]
   }
 }

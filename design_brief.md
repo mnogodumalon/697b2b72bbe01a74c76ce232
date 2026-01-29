@@ -3,50 +3,36 @@
 ## 1. App Analysis
 
 ### What This App Does
-This is a tool management system ("Werkzeugverwaltung") for what appears to be an electrical installation and construction company. It tracks tools (Werkzeuge) across different storage locations (Lagerorte), manages tool checkouts to employees (Werkzeugausgabe), and records returns with condition assessments (Werkzeugrückgabe). The system also tracks DGUV V3 inspection requirements for electrical equipment.
+This is a tool management system for an electrical installation company. It tracks the complete lifecycle of tools: inventory management, who has which tools checked out, when they're due back, return condition documentation, and DGUV V3 inspection compliance. The system connects storage locations, employees, and tool records to provide full traceability.
 
 ### Who Uses This
-A workshop manager, warehouse supervisor, or site foreman who needs to:
-- Know which tools are currently checked out and to whom
-- Track tools that are overdue for return
-- Monitor upcoming DGUV V3 inspections (legal requirement in Germany)
-- Quickly issue or return tools
-- See the overall status of the tool inventory
+Workshop managers, site supervisors, and warehouse staff at an electrical contracting company. They need to quickly see which tools are available, which are out on job sites, and ensure compliance with German electrical safety regulations (DGUV V3). They're practical people who want fast answers without digging through menus.
 
 ### The ONE Thing Users Care About Most
-**"Where are my tools right now, and which ones need attention?"**
-
-The user opens this dashboard to immediately see:
-1. How many tools are currently out (checked out)
-2. Which tools are overdue
-3. Which tools need inspection soon
+**"Wie viele Werkzeuge sind gerade im Umlauf?"** (How many tools are currently checked out?) - This is the pulse of their operation. If too many tools are out, they can't supply new jobs. If tools are overdue, someone needs to follow up.
 
 ### Primary Actions (IMPORTANT!)
-Users need to perform these actions most often:
-
-1. **Werkzeug ausgeben** (Issue a tool) → Primary Action Button
-   - This is the #1 action - someone comes to the workshop and needs a tool
-2. **Werkzeug zurückgeben** (Return a tool) → Secondary action
-   - When someone brings a tool back
-3. View tool details → Click on a tool in the list
+1. **Werkzeug ausgeben** (Check out a tool) → Primary Action Button - This is the #1 daily action
+2. View overdue tools and follow up
+3. Check upcoming inspections
+4. Record tool returns
 
 ---
 
 ## 2. What Makes This Design Distinctive
 
 ### Visual Identity
-This dashboard uses an **industrial-professional aesthetic** that feels appropriate for a workshop environment. The warm stone-gray tones with a strong amber/orange accent evoke tools, safety equipment, and industrial settings. It's serious and functional, but the amber accent adds energy and helps critical warnings (overdue, inspection needed) stand out naturally. The design feels like it belongs in a Werkstatt, not a generic SaaS product.
+This design channels the aesthetic of a premium industrial management app - think German engineering precision meets modern software. A cool slate-blue base with amber-orange accents evokes workshop warning colors and high-visibility safety gear. The effect is professional, serious, and purpose-built for the trades - not a generic business dashboard, but something that feels at home next to precision measuring equipment.
 
 ### Layout Strategy
-The layout is **asymmetric with a clear hero section**:
-- **Hero element**: A large status overview showing the 3 most critical numbers (Werkzeuge ausgegeben, Überfällig, Prüfung fällig) takes visual prominence at the top
-- The hero uses **bold typography and color-coded indicators** - the count of overdue/inspection-due items uses the amber accent for warning
-- **Below the hero**: A two-column layout on desktop with "Aktuelle Ausgaben" (current checkouts) taking 60% width and "Prüfungen fällig" (inspections due) taking 40%
-- **Visual interest through size variation**: The hero numbers are dramatically large (48px+), secondary metrics are medium, and table text is compact
-- **Mobile reorganizes to vertical flow** with hero at top, then stacked sections
+The layout uses **asymmetric emphasis** with the hero metric dominating the left/top position:
+- **Hero**: The "Werkzeuge im Umlauf" (Tools in Circulation) metric takes center stage with a large, bold number and a compact donut chart showing the breakdown
+- **Size variation**: The hero is 2x the visual weight of secondary KPIs, creating immediate hierarchy
+- **Grouped secondary metrics**: Three smaller KPIs (Overdue, Due for Inspection, Needing Repair) sit horizontally below the hero, unified by their similar sizing
+- **Activity feed**: Recent checkouts/returns provide temporal context without competing with the hero
 
 ### Unique Element
-The **hero status cards use a distinctive "status pill" design** - each KPI has a rounded left edge with a colored indicator bar (green for OK, amber for warning, red for critical). This creates a visual "traffic light" effect that communicates status instantly without reading numbers. The indicator bar is 4px wide and uses rounded caps, creating a refined industrial meter aesthetic.
+The **circular progress indicator** around the hero KPI shows the proportion of tools currently checked out vs. total inventory. The ring uses a thick 6px stroke with the amber accent color, with an animated fill on load. A subtle glow effect (2px shadow in accent color at 30% opacity) makes it feel almost like an illuminated gauge from industrial equipment.
 
 ---
 
@@ -55,330 +41,252 @@ The **hero status cards use a distinctive "status pill" design** - each KPI has 
 ### Font
 - **Family:** Space Grotesk
 - **URL:** `https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap`
-- **Why this font:** Space Grotesk has a technical, industrial quality that suits a tool management system. Its geometric forms feel modern yet workmanlike. The distinct numerals make data easy to scan quickly.
+- **Why this font:** Space Grotesk has a technical, engineered quality with its geometric forms and slightly condensed proportions. It reads as modern and precise - perfect for a tool tracking system where accuracy matters.
 
 ### Color Palette
 All colors as complete hsl() functions:
 
 | Purpose | Color | CSS Variable |
 |---------|-------|--------------|
-| Page background | `hsl(30 10% 96%)` | `--background` |
-| Main text | `hsl(30 5% 15%)` | `--foreground` |
+| Page background | `hsl(215 25% 97%)` | `--background` |
+| Main text | `hsl(215 25% 15%)` | `--foreground` |
 | Card background | `hsl(0 0% 100%)` | `--card` |
-| Card text | `hsl(30 5% 15%)` | `--card-foreground` |
-| Borders | `hsl(30 10% 88%)` | `--border` |
-| Primary action (amber) | `hsl(32 95% 44%)` | `--primary` |
+| Card text | `hsl(215 25% 15%)` | `--card-foreground` |
+| Borders | `hsl(215 20% 88%)` | `--border` |
+| Primary action | `hsl(25 95% 53%)` | `--primary` |
 | Text on primary | `hsl(0 0% 100%)` | `--primary-foreground` |
-| Accent highlight | `hsl(32 90% 95%)` | `--accent` |
-| Muted background | `hsl(30 10% 94%)` | `--muted` |
-| Muted text | `hsl(30 5% 45%)` | `--muted-foreground` |
-| Success/positive (available) | `hsl(142 70% 35%)` | (component use) |
-| Warning (overdue/inspection) | `hsl(32 95% 44%)` | (matches primary) |
-| Error/negative (critical) | `hsl(0 70% 50%)` | `--destructive` |
+| Accent highlight | `hsl(25 95% 53%)` | `--accent` |
+| Muted background | `hsl(215 20% 94%)` | `--muted` |
+| Muted text | `hsl(215 15% 50%)` | `--muted-foreground` |
+| Success/positive | `hsl(152 60% 40%)` | (component use) |
+| Error/negative | `hsl(0 72% 51%)` | `--destructive` |
+| Warning/attention | `hsl(38 92% 50%)` | (component use) |
 
 ### Why These Colors
-The warm stone-gray background (`hsl(30 10% 96%)`) has a subtle warmth that feels industrial without being cold. The amber primary (`hsl(32 95% 44%)`) is reminiscent of safety equipment, warning signs, and the warmth of workshop lighting. It's bold enough to draw attention but professional enough for a business tool. The green success color is used sparingly for "available" or "OK" status.
+The cool slate-blue base (`hsl(215 25% 97%)`) creates a calm, professional backdrop that reduces eye strain during long work sessions. The amber-orange primary (`hsl(25 95% 53%)`) is high-visibility - it's the universal color of safety equipment and industrial warnings. This creates instant recognition: orange = action needed. The combination says "serious professional tool" without being cold or sterile.
 
 ### Background Treatment
-The page background uses a warm off-white/stone color (`hsl(30 10% 96%)`). Cards are pure white to create subtle elevation. No gradients or patterns - the industrial aesthetic benefits from clean, solid surfaces.
+The background uses a subtle blue-gray tint (`hsl(215 25% 97%)`) rather than pure white. This reduces harsh contrast and gives the interface a cohesive, slightly industrial feel - like the brushed metal of quality tools.
 
 ---
 
 ## 4. Mobile Layout (Phone)
 
+Design mobile as a COMPLETELY SEPARATE experience, optimized for quick checks on the workshop floor.
+
 ### Layout Approach
-Mobile uses a **single-column vertical flow** with the hero status section dominating the first viewport. The 3 key metrics stack horizontally in a compact row, making status visible immediately. Below, content sections stack vertically with clear section headers.
+The hero takes the entire top portion of the screen - a workshop manager glancing at their phone should see THE number immediately. Visual hierarchy is created through dramatic size differences: the hero number is 48px, secondary KPIs are 24px. The circular progress ring provides visual interest without clutter.
 
 ### What Users See (Top to Bottom)
 
 **Header:**
-- App title "Werkzeugverwaltung" left-aligned, medium weight
-- Primary action button "Ausgeben" (amber, pill-shaped) right-aligned
-- Compact height (56px)
+- Left: "Werkzeugverwaltung" title in 18px semibold
+- Right: Primary action button ("+ Ausgabe") - compact pill style, amber background
 
-**Hero Section (Status Overview):**
-- Takes approximately 30% of viewport height
-- Three status cards in a horizontal row (equal width, ~33% each)
-- Each card shows:
-  - Large number (32px, bold)
-  - Label below (12px, muted)
-  - Left border indicator (4px, color-coded)
-- Cards: "Ausgegeben" (checked out), "Überfällig" (overdue), "Prüfung fällig" (inspection due)
-- Why hero: Instantly answers "what needs my attention?"
+**Hero Section (The FIRST thing users see):**
+- Takes approximately 40% of viewport height
+- Central circular progress ring (140px diameter, 6px stroke)
+- Inside the ring: The number of tools currently checked out in 48px bold
+- Below the number: "von [total] Werkzeugen im Umlauf" in 14px muted text
+- The ring animates from 0 to current percentage on load (0.6s ease-out)
+- Why this is the hero: It answers THE question instantly - "how many tools are out right now?"
 
-**Section 2: Aktuelle Ausgaben (Current Checkouts)**
-- Section header: "Aktuelle Ausgaben" with count badge
-- Scrollable list of checkout cards
-- Each card shows:
-  - Tool name (bold)
-  - Employee name
-  - Checkout date
-  - Days out / status (overdue highlighted in amber)
-- Maximum 5 items shown, "Alle anzeigen" link for more
-- Cards have subtle shadow and rounded corners
+**Section 2: Alert KPIs (Horizontal scroll)**
+- Three compact cards in a horizontal scroll container
+- Each card: ~100px width, slight amber/red left border accent based on severity
+- **Überfällig** (Overdue): Red accent, shows count of tools past return date
+- **Prüfung fällig** (Due for Inspection): Amber accent, DGUV V3 inspections due within 30 days
+- **Reparaturbedürftig** (Needing Repair): Gray accent, tools marked as damaged/defective
+- Tap any card to see the list of affected tools
 
-**Section 3: Prüfungen fällig (Inspections Due)**
-- Section header: "Prüfungen fällig" with count badge
-- Compact list format (not cards)
-- Each row: Tool name, inspection date, days until due
-- Items due within 7 days highlighted with amber background
-- Items overdue highlighted with red text
+**Section 3: Letzte Aktivitäten (Recent Activity)**
+- Simple list of last 5 checkouts/returns
+- Each row: Tool icon, Tool name, Action (Ausgabe/Rückgabe), Employee name, Time ago
+- Alternating subtle background for readability
+- Full list accessible via "Alle anzeigen" link
 
 **Bottom Navigation / Action:**
-- Fixed bottom action bar (height 72px, white with top shadow)
-- Primary button: "Werkzeug ausgeben" (full width, amber)
-- This ensures the #1 action is always one tap away
+- No bottom nav bar - keep it clean
+- The primary action is in the header for easy thumb reach
 
 ### Mobile-Specific Adaptations
-- Hero cards become compact horizontal pills
-- Table views transform to card lists
-- Touch targets minimum 44px
-- Section content limited to 5 items with "show more"
+- Alert KPIs become horizontally scrollable cards instead of side-by-side grid
+- Activity list shows abbreviated info (tool name + action + time only)
+- Charts are simplified or hidden - mobile users want quick numbers, not analysis
 
 ### Touch Targets
-- All interactive elements minimum 44px touch target
-- Cards have full-surface tap area
-- List rows have generous padding (16px vertical)
+- All tappable cards minimum 48px height
+- Primary action button: 44px height, generous horizontal padding
+- Alert KPI cards: Full card is tappable (not just text)
 
 ### Interactive Elements
-- Tapping a checkout card shows tool details modal
-- Tapping an inspection item shows tool details modal
+- Tap hero ring: Shows breakdown popup of tools by location
+- Tap any alert KPI: Opens filtered list of those tools
+- Tap activity row: Opens full checkout/return detail
 
 ---
 
 ## 5. Desktop Layout
 
 ### Overall Structure
-A **two-row layout** with the hero spanning full width at top, then a two-column content area below:
-- Top: Hero status cards (full width, ~120px height)
-- Bottom left (60%): Current checkouts table
-- Bottom right (40%): Inspections due + Quick stats
+Three-column layout with asymmetric widths: **60% main | 40% sidebar**
 
-Eye flow: Hero numbers first → Current checkouts table → Inspections list
+The eye flows: Hero (top-left) → Alert KPIs (below hero) → Activity feed (right sidebar)
+
+Visual interest comes from the size contrast between the large hero card and the compact alert KPIs, plus the vertical sidebar creating asymmetry.
 
 ### Section Layout
 
-**Top Row - Hero Status:**
-- Three large status cards in horizontal row
-- Each card: ~280px wide, equal spacing
-- Generous padding (24px), large numbers (48px)
-- Left border indicator (4px wide)
-- Cards centered within the row with max-width constraint
+**Top Area (Full Width):**
+- Header bar: "Werkzeugverwaltung" title (left), Primary action button (right), Current date/time
 
-**Main Content - Left Column (60%):**
-"Aktuelle Ausgaben" section
-- Section header with count badge
-- Full data table with columns:
-  - Werkzeug (tool name)
-  - Mitarbeiter (employee)
-  - Ausgabedatum (checkout date)
-  - Geplante Rückgabe (planned return)
-  - Status (badge: "Aktiv" or "Überfällig")
-- Sortable by any column
-- Shows up to 10 items, pagination if more
-- Row hover shows "Details" action
+**Main Content Area (60%, Left):**
+- **Hero Card** (full main-column width, 200px height):
+  - Left side: Large circular progress ring (160px diameter)
+  - Inside ring: Checkout count in 56px bold
+  - Right of ring: Explanatory text "Werkzeuge aktuell im Umlauf" + "von [total] im Bestand"
+  - Below: Mini bar chart showing checkouts by category (Akkuwerkzeug, Elektrowerkzeug, etc.)
 
-**Main Content - Right Column (40%):**
-"Prüfungen fällig" section
-- Compact list of tools needing inspection
-- Each row: Tool name, category icon, due date, days until
-- Color-coded by urgency (within 7 days = amber, overdue = red)
-- Shows up to 8 items
+- **Alert KPIs Row** (below hero, three equal columns):
+  - Three cards side by side: Überfällig, Prüfung fällig, Reparaturbedürftig
+  - Each shows: Icon, count (large), label (small), colored left border accent
+  - Click to see filtered list in a slide-out panel
 
-Below that:
-"Schnellübersicht" (Quick Stats) mini-section
-- Small stat cards in 2x2 grid:
-  - Werkzeuge gesamt (total tools)
-  - Verfügbar (available)
-  - An Mitarbeiter (checked out)
-  - Reparaturbedürftig (needs repair)
+- **Checkouts by Location Chart** (below alerts):
+  - Horizontal bar chart showing tools checked out by storage location type
+  - Helps identify if certain sites are hoarding tools
+
+**Sidebar (40%, Right):**
+- **Letzte Aktivitäten** (sticky while scrolling main content)
+  - Last 10 checkout/return events
+  - Each row: Timestamp, Tool name, Action badge (Ausgabe=amber, Rückgabe=green), Employee
+  - "Alle Aktivitäten" button at bottom
 
 ### What Appears on Hover
-- Table rows: Subtle background highlight + "Details" text link appears
-- Status cards: Subtle scale transform (1.02)
-- Inspection items: Background highlight
+- Alert KPI cards: Subtle elevation increase (shadow grows), cursor pointer
+- Activity rows: Light background highlight, show "Details →" text
+- Chart bars: Tooltip with exact count and percentage
 
 ### Clickable/Interactive Areas
-- Hero cards: Click opens filtered view (e.g., click "Überfällig" shows only overdue)
-- Table rows: Click opens tool detail modal
-- Inspection items: Click opens tool detail modal
+- Hero ring: Hover shows tooltip "Zum Bestand", click opens tool inventory view
+- Alert KPI cards: Click opens slide-out panel with filtered tool list
+- Activity rows: Click opens full checkout/return detail modal
+- Chart bars: Click filters to show tools at that location
 
 ---
 
 ## 6. Components
 
-### Hero KPI 1: Werkzeuge ausgegeben (Tools Checked Out)
-The MOST important metric - how many tools are currently in circulation.
+### Hero KPI
+The MOST important metric that users see first.
 
-- **Title:** Ausgegeben
-- **Data source:** werkzeugausgabe (checkouts) minus werkzeugrueckgabe (returns) - count checkouts that don't have a matching return
-- **Calculation:** Count of werkzeugausgabe records where no corresponding werkzeugrueckgabe.ausgabe exists
-- **Display:** Large number (48px desktop, 32px mobile) with subtle tool icon
-- **Context shown:** None needed - the number itself is the answer
-- **Indicator color:** Green if < 30% of total tools, Amber if 30-50%, Red if > 50%
-- **Why this is the hero:** Core operational question: "How much of my inventory is out?"
+- **Title:** Werkzeuge im Umlauf
+- **Data source:** Cross-reference Werkzeugausgabe and Werkzeugrückgabe
+- **Calculation:** Count of checkouts (Werkzeugausgabe) that don't have a corresponding return (Werkzeugrückgabe where ausgabe reference matches). A tool is "checked out" if it has an ausgabe record with no matching rückgabe.
+- **Display:** Large number (56px desktop, 48px mobile) inside a circular progress ring. The ring shows (checked out / total tools) as a percentage fill.
+- **Context shown:** "von [total] im Bestand" text below the number, showing total tool count for context
+- **Why this is the hero:** Workshop managers need to know at a glance how much of their inventory is currently deployed. This single number tells them if they can fulfill new requests or if they need to recall tools.
 
-### Hero KPI 2: Überfällig (Overdue)
-- **Title:** Überfällig
-- **Data source:** werkzeugausgabe
-- **Calculation:** Count where geplantes_rueckgabedatum < today AND no return exists
-- **Display:** Large number with warning indicator
-- **Indicator color:** Green if 0, Amber if 1-3, Red if > 3
-- **Format:** Number
+### Secondary KPIs
 
-### Hero KPI 3: Prüfung fällig (Inspection Due)
-- **Title:** Prüfung fällig
-- **Data source:** werkzeuge
-- **Calculation:** Count where pruefpflicht = true AND naechster_prueftermin <= today + 30 days
-- **Display:** Large number with calendar/check icon
-- **Indicator color:** Green if 0, Amber if 1-5, Red if > 5
-- **Format:** Number
-
-### Secondary KPIs (Quick Stats on Desktop)
-
-**Werkzeuge gesamt**
-- Source: werkzeuge
-- Calculation: Total count
+**Überfällig (Overdue)**
+- Source: Werkzeugausgabe where geplantes_rueckgabedatum < today AND no matching Werkzeugrückgabe
+- Calculation: Count of overdue, unreturned checkouts
 - Format: number
-- Display: Small stat card
+- Display: Compact card with red left border, icon (clock with exclamation), count in 24px bold
+- Color coding: Red accent when > 0
 
-**Verfügbar**
-- Source: werkzeuge count - currently checked out count
-- Calculation: Total tools minus tools with active checkout
+**Prüfung fällig (Inspections Due)**
+- Source: Werkzeuge where pruefpflicht = true AND naechster_prueftermin is within next 30 days
+- Calculation: Count of tools due for DGUV V3 inspection soon
 - Format: number
-- Display: Small stat card with green accent
+- Display: Compact card with amber left border, icon (clipboard check), count in 24px bold
+- Color coding: Amber accent when > 0
 
-**An Mitarbeiter**
-- Source: werkzeugausgabe (active)
-- Calculation: Same as Hero KPI 1
+**Reparaturbedürftig (Needing Repair)**
+- Source: Werkzeuge where zustand = "reparaturbeduerftig" OR zustand = "defekt"
+- Calculation: Count of tools in poor condition
 - Format: number
-- Display: Small stat card
+- Display: Compact card with gray left border, icon (wrench), count in 24px bold
+- Color coding: Neutral unless critical threshold
 
-**Reparaturbedürftig**
-- Source: werkzeuge
-- Calculation: Count where zustand = "reparaturbeduerftig" OR zustand = "defekt"
-- Format: number
-- Display: Small stat card with red accent if > 0
+### Chart (Desktop Only)
 
-### Chart
-No chart in this design. The data is better represented as lists and counts. Tool management is about current state, not trends over time.
+- **Type:** Horizontal bar chart - chosen because location names are text labels that read naturally left-to-right, and the values are easy to compare when bars extend horizontally
+- **Title:** Werkzeuge nach Standort
+- **What question it answers:** "Where are our tools distributed?" - helps identify if certain locations have too many tools checked out
+- **Data source:** Werkzeuge, grouped by aktueller_lagerort
+- **X-axis:** Count of tools
+- **Y-axis:** Location name (from Lagerorte.ortsbezeichnung)
+- **Mobile simplification:** Hidden on mobile - not critical for quick checks
 
 ### Lists/Tables
 
-**Aktuelle Ausgaben (Current Checkouts)**
-- Purpose: See all currently checked-out tools at a glance, identify overdue items
-- Source: werkzeugausgabe joined with werkzeuge and mitarbeiter, filtered to active (no return)
-- Fields shown:
-  - werkzeug.bezeichnung (tool name)
-  - mitarbeiter.vorname + nachname (employee)
-  - ausgabedatum (checkout date)
-  - geplantes_rueckgabedatum (planned return)
-  - Status badge (calculated: "Aktiv" or "Überfällig")
-- Mobile style: Cards with key info
-- Desktop style: Data table with sortable columns
-- Sort: By geplantes_rueckgabedatum ascending (overdue first)
-- Limit: 10 on desktop, 5 on mobile
-
-**Prüfungen fällig (Inspections Due)**
-- Purpose: Compliance tracking - never miss a DGUV V3 inspection
-- Source: werkzeuge where pruefpflicht = true
-- Fields shown:
-  - bezeichnung (tool name)
-  - kategorie (category)
-  - naechster_prueftermin (next inspection date)
-  - Days until (calculated)
-- Mobile style: Compact list rows
-- Desktop style: Compact list with color-coded urgency
-- Sort: By naechster_prueftermin ascending (most urgent first)
-- Limit: 8 items, filtered to next 60 days
+**Letzte Aktivitäten (Recent Activity)**
+- Purpose: Show the pulse of tool movement - what's happening right now
+- Source: Werkzeugausgabe and Werkzeugrückgabe, combined and sorted by date
+- Fields shown: Timestamp (relative, e.g., "vor 2 Std."), Tool name (from werkzeug lookup), Action type (Ausgabe/Rückgabe), Employee name (from mitarbeiter lookup)
+- Mobile style: Simple list with minimal info (tool + action + time)
+- Desktop style: Richer list with all fields, subtle row dividers
+- Sort: By date, newest first
+- Limit: 5 on mobile, 10 on desktop
 
 ### Primary Action Button (REQUIRED!)
 
-- **Label:** "Werkzeug ausgeben" (mobile: "Ausgeben")
-- **Action:** navigate to form / open modal
-- **Target app:** werkzeugausgabe
-- **What data:** Form with fields:
-  - werkzeug (applookup select)
-  - mitarbeiter (applookup select)
-  - ausgabedatum (datetime, default: now)
-  - geplantes_rueckgabedatum (date)
-  - verwendungszweck (text, optional)
-- **Mobile position:** bottom_fixed (full-width button in sticky footer)
-- **Desktop position:** header (right-aligned button in page header)
-- **Why this action:** This is literally the core workflow - someone comes to get a tool, you log it immediately
-
-### Secondary Action
-
-- **Label:** "Rückgabe erfassen"
-- **Action:** navigate to form / open modal
-- **Target app:** werkzeugrueckgabe
-- **Position:** Next to primary on desktop, in action sheet on mobile (swipe up)
+- **Label:** "Werkzeug ausgeben" (desktop) / "+ Ausgabe" (mobile, shorter)
+- **Action:** add_record - opens form to create new Werkzeugausgabe record
+- **Target app:** Werkzeugausgabe (app_id: 697b2b41d520e5a668295185)
+- **What data:** Form fields for: werkzeug (applookup select), mitarbeiter (applookup select), verwendungszweck (text), geplantes_rueckgabedatum (date), notizen (optional textarea)
+- **Mobile position:** header (top right, always visible)
+- **Desktop position:** header (top right, prominent button)
+- **Why this action:** Checking out tools is the most frequent action - it happens multiple times per day as workers head to job sites. Making this one tap away saves significant time.
 
 ---
 
 ## 7. Visual Details
 
 ### Border Radius
-- Cards: 12px (rounded, but not too playful)
-- Buttons: 8px (or pill for primary CTA)
-- Inputs: 8px
-- Status badges: 4px
-- Hero indicator bars: 4px (rounded caps)
+Rounded (8px) - Modern without being too soft. Matches the precision aesthetic while remaining approachable.
 
 ### Shadows
-- Cards: `0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)` - subtle, functional
-- Hover: `0 4px 12px rgba(0,0,0,0.1)` - slight lift
-- Fixed bottom bar: `0 -2px 10px rgba(0,0,0,0.08)` - top shadow
+Subtle - Cards use `0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)`. On hover, elevate to `0 4px 6px rgba(0,0,0,0.1)`. The effect is gentle lift, not dramatic depth.
 
 ### Spacing
-- Page padding: 16px mobile, 24px desktop
-- Card padding: 16px mobile, 20px desktop
-- Section gap: 24px mobile, 32px desktop
-- Element gap within sections: 12px
-- Overall feel: Normal to spacious - breathing room for clarity
+Normal (16px base unit) - Adequate breathing room without wasting screen space. Compact enough to show all critical info above the fold.
 
 ### Animations
-- **Page load:** Subtle fade-in (200ms), hero numbers count up from 0
-- **Hover effects:** Cards scale to 1.02 with 150ms ease, background color shift
-- **Tap feedback:** Quick scale down to 0.98, then back
-- **Number changes:** Animate with counting effect when data updates
+- **Page load:** Stagger fade-in. Hero appears first (0ms), then alert KPIs (100ms delay), then activity feed (200ms delay). Each element fades from 0 to 1 opacity over 300ms.
+- **Progress ring:** Animated draw from 0 to current value over 600ms, ease-out timing
+- **Hover effects:** Cards lift slightly (translateY -2px) with shadow increase, 150ms transition
+- **Tap feedback:** Scale to 0.98 on active state, spring back
 
 ---
 
 ## 8. CSS Variables (Copy Exactly!)
 
+The implementer MUST copy these values exactly into `src/index.css`:
+
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
 :root {
-  --background: hsl(30 10% 96%);
-  --foreground: hsl(30 5% 15%);
+  --background: hsl(215 25% 97%);
+  --foreground: hsl(215 25% 15%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(30 5% 15%);
+  --card-foreground: hsl(215 25% 15%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(30 5% 15%);
-  --primary: hsl(32 95% 44%);
+  --popover-foreground: hsl(215 25% 15%);
+  --primary: hsl(25 95% 53%);
   --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(30 10% 94%);
-  --secondary-foreground: hsl(30 5% 25%);
-  --muted: hsl(30 10% 94%);
-  --muted-foreground: hsl(30 5% 45%);
-  --accent: hsl(32 90% 95%);
-  --accent-foreground: hsl(32 95% 30%);
-  --destructive: hsl(0 70% 50%);
-  --border: hsl(30 10% 88%);
-  --input: hsl(30 10% 88%);
-  --ring: hsl(32 95% 44%);
-  --radius: 0.75rem;
-
-  /* Additional semantic colors */
-  --success: hsl(142 70% 35%);
-  --warning: hsl(32 95% 44%);
-  --danger: hsl(0 70% 50%);
-}
-
-body {
-  font-family: 'Space Grotesk', sans-serif;
+  --secondary: hsl(215 20% 94%);
+  --secondary-foreground: hsl(215 25% 15%);
+  --muted: hsl(215 20% 94%);
+  --muted-foreground: hsl(215 15% 50%);
+  --accent: hsl(25 95% 53%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 72% 51%);
+  --border: hsl(215 20% 88%);
+  --input: hsl(215 20% 88%);
+  --ring: hsl(25 95% 53%);
+  --radius: 0.5rem;
 }
 ```
 
@@ -387,16 +295,14 @@ body {
 ## 9. Implementation Checklist
 
 The implementer should verify:
-- [ ] Font loaded from Google Fonts URL above
-- [ ] All CSS variables copied exactly to src/index.css
-- [ ] Mobile layout matches Section 4 (hero at top, fixed bottom action)
-- [ ] Desktop layout matches Section 5 (hero full width, two columns below)
-- [ ] Hero status cards have left border indicators with color coding
-- [ ] Numbers use Space Grotesk with dramatic size (48px desktop, 32px mobile)
-- [ ] Amber color used consistently for warnings and primary actions
-- [ ] Current checkouts table sorted by due date (overdue first)
-- [ ] Inspections list filtered to next 60 days, sorted by urgency
-- [ ] Primary action button is prominent and always accessible
-- [ ] Touch targets are minimum 44px on mobile
-- [ ] Cards have subtle shadows as specified
-- [ ] Status badges use correct color coding (green/amber/red)
+- [ ] Font loaded from URL above (Space Grotesk)
+- [ ] All CSS variables copied exactly
+- [ ] Mobile layout matches Section 4 (hero-dominant, horizontal scroll KPIs)
+- [ ] Desktop layout matches Section 5 (60/40 split, sidebar activity)
+- [ ] Hero element is prominent as described (circular progress ring with large number)
+- [ ] Colors create the industrial/precision mood described in Section 2
+- [ ] Primary action button is always visible and accessible
+- [ ] Alert KPIs show real data with appropriate color coding
+- [ ] Activity feed shows combined checkout/return events
+- [ ] Progress ring animates on load
+- [ ] Hover states work as described

@@ -1,6 +1,6 @@
 // AUTOMATICALLY GENERATED SERVICE
 import { APP_IDS } from '@/types/app';
-import type { Mitarbeiter, Lagerorte, Werkzeuge, Werkzeugausgabe, Werkzeugrueckgabe } from '@/types/app';
+import type { Lagerorte, Mitarbeiter, Werkzeuge, Werkzeugrueckgabe, Werkzeugausgabe } from '@/types/app';
 
 // Base Configuration
 const API_BASE_URL = 'https://my.living-apps.de/rest';
@@ -31,27 +31,6 @@ async function callApi(method: string, endpoint: string, data?: any) {
 }
 
 export class LivingAppsService {
-  // --- MITARBEITER ---
-  static async getMitarbeiter(): Promise<Mitarbeiter[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.MITARBEITER}/records`);
-    return Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
-    }));
-  }
-  static async getMitarbeiterEntry(id: string): Promise<Mitarbeiter | undefined> {
-    const data = await callApi('GET', `/apps/${APP_IDS.MITARBEITER}/records/${id}`);
-    return { record_id: data.id, ...data };
-  }
-  static async createMitarbeiterEntry(fields: Mitarbeiter['fields']) {
-    return callApi('POST', `/apps/${APP_IDS.MITARBEITER}/records`, { fields });
-  }
-  static async updateMitarbeiterEntry(id: string, fields: Partial<Mitarbeiter['fields']>) {
-    return callApi('PATCH', `/apps/${APP_IDS.MITARBEITER}/records/${id}`, { fields });
-  }
-  static async deleteMitarbeiterEntry(id: string) {
-    return callApi('DELETE', `/apps/${APP_IDS.MITARBEITER}/records/${id}`);
-  }
-
   // --- LAGERORTE ---
   static async getLagerorte(): Promise<Lagerorte[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.LAGERORTE}/records`);
@@ -71,6 +50,27 @@ export class LivingAppsService {
   }
   static async deleteLagerorteEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.LAGERORTE}/records/${id}`);
+  }
+
+  // --- MITARBEITER ---
+  static async getMitarbeiter(): Promise<Mitarbeiter[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.MITARBEITER}/records`);
+    return Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec
+    }));
+  }
+  static async getMitarbeiterEntry(id: string): Promise<Mitarbeiter | undefined> {
+    const data = await callApi('GET', `/apps/${APP_IDS.MITARBEITER}/records/${id}`);
+    return { record_id: data.id, ...data };
+  }
+  static async createMitarbeiterEntry(fields: Mitarbeiter['fields']) {
+    return callApi('POST', `/apps/${APP_IDS.MITARBEITER}/records`, { fields });
+  }
+  static async updateMitarbeiterEntry(id: string, fields: Partial<Mitarbeiter['fields']>) {
+    return callApi('PATCH', `/apps/${APP_IDS.MITARBEITER}/records/${id}`, { fields });
+  }
+  static async deleteMitarbeiterEntry(id: string) {
+    return callApi('DELETE', `/apps/${APP_IDS.MITARBEITER}/records/${id}`);
   }
 
   // --- WERKZEUGE ---
@@ -94,27 +94,6 @@ export class LivingAppsService {
     return callApi('DELETE', `/apps/${APP_IDS.WERKZEUGE}/records/${id}`);
   }
 
-  // --- WERKZEUGAUSGABE ---
-  static async getWerkzeugausgabe(): Promise<Werkzeugausgabe[]> {
-    const data = await callApi('GET', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records`);
-    return Object.entries(data).map(([id, rec]: [string, any]) => ({
-      record_id: id, ...rec
-    }));
-  }
-  static async getWerkzeugausgabeEntry(id: string): Promise<Werkzeugausgabe | undefined> {
-    const data = await callApi('GET', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`);
-    return { record_id: data.id, ...data };
-  }
-  static async createWerkzeugausgabeEntry(fields: Werkzeugausgabe['fields']) {
-    return callApi('POST', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records`, { fields });
-  }
-  static async updateWerkzeugausgabeEntry(id: string, fields: Partial<Werkzeugausgabe['fields']>) {
-    return callApi('PATCH', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`, { fields });
-  }
-  static async deleteWerkzeugausgabeEntry(id: string) {
-    return callApi('DELETE', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`);
-  }
-
   // --- WERKZEUGRUECKGABE ---
   static async getWerkzeugrueckgabe(): Promise<Werkzeugrueckgabe[]> {
     const data = await callApi('GET', `/apps/${APP_IDS.WERKZEUGRUECKGABE}/records`);
@@ -134,6 +113,27 @@ export class LivingAppsService {
   }
   static async deleteWerkzeugrueckgabeEntry(id: string) {
     return callApi('DELETE', `/apps/${APP_IDS.WERKZEUGRUECKGABE}/records/${id}`);
+  }
+
+  // --- WERKZEUGAUSGABE ---
+  static async getWerkzeugausgabe(): Promise<Werkzeugausgabe[]> {
+    const data = await callApi('GET', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records`);
+    return Object.entries(data).map(([id, rec]: [string, any]) => ({
+      record_id: id, ...rec
+    }));
+  }
+  static async getWerkzeugausgabeEntry(id: string): Promise<Werkzeugausgabe | undefined> {
+    const data = await callApi('GET', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`);
+    return { record_id: data.id, ...data };
+  }
+  static async createWerkzeugausgabeEntry(fields: Werkzeugausgabe['fields']) {
+    return callApi('POST', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records`, { fields });
+  }
+  static async updateWerkzeugausgabeEntry(id: string, fields: Partial<Werkzeugausgabe['fields']>) {
+    return callApi('PATCH', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`, { fields });
+  }
+  static async deleteWerkzeugausgabeEntry(id: string) {
+    return callApi('DELETE', `/apps/${APP_IDS.WERKZEUGAUSGABE}/records/${id}`);
   }
 
 }

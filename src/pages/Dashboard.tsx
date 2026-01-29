@@ -1,34 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format, parseISO, differenceInDays, addDays } from 'date-fns';
-import { de } from 'date-fns/locale';
-import {
-  Wrench,
-  AlertTriangle,
-  ClipboardCheck,
-  Plus,
-  ArrowLeft,
-  Package,
-  CheckCircle,
-  Users,
-  AlertCircle,
-  Calendar,
-  User,
-  Clock,
-  MapPin,
-} from 'lucide-react';
-import type {
-  Werkzeuge,
-  Werkzeugausgabe,
-  Werkzeugrueckgabe,
-  Mitarbeiter,
-  Lagerorte,
-} from '@/types/app';
+import type { Werkzeuge, Werkzeugausgabe, Werkzeugrueckgabe, Lagerorte, Mitarbeiter } from '@/types/app';
 import { APP_IDS } from '@/types/app';
-import {
-  LivingAppsService,
-  extractRecordId,
-  createRecordUrl,
-} from '@/services/livingAppsService';
+import { LivingAppsService, extractRecordId, createRecordUrl } from '@/services/livingAppsService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +14,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -48,79 +24,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts';
+import { formatDistance, parseISO, format, isBefore, addDays } from 'date-fns';
+import { de } from 'date-fns/locale';
+import {
+  Plus,
+  Clock,
+  AlertCircle,
+  Wrench,
+  ClipboardCheck,
+  ArrowRightLeft,
+  RefreshCw,
+} from 'lucide-react';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-interface EnrichedCheckout {
-  checkout: Werkzeugausgabe;
-  tool: Werkzeuge | null;
-  employee: Mitarbeiter | null;
-  isOverdue: boolean;
-  daysOut: number;
+// Types for enriched data
+interface EnrichedCheckout extends Werkzeugausgabe {
+  werkzeugData?: Werkzeuge;
+  mitarbeiterData?: Mitarbeiter;
+  isReturned: boolean;
 }
 
-interface ToolWithInspection {
-  tool: Werkzeuge;
-  daysUntilDue: number;
-  isOverdue: boolean;
+interface ActivityItem {
+  id: string;
+  type: 'checkout' | 'return';
+  date: string;
+  werkzeugName: string;
+  mitarbeiterName: string;
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-function getStatusColor(
-  count: number,
-  thresholds: { warning: number; danger: number }
-): 'success' | 'warning' | 'danger' {
-  if (count === 0) return 'success';
-  if (count <= thresholds.warning) return 'warning';
-  return 'danger';
-}
-
-function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return '-';
-  try {
-    return format(parseISO(dateStr.split('T')[0]), 'dd.MM.yyyy', { locale: de });
-  } catch {
-    return '-';
-  }
-}
-
-// Lookup data maps
-const KATEGORIE_LABELS: Record<string, string> = {
-  messgeraet: 'Messgerät',
-  pruefgeraet: 'Prüfgerät',
-  akkuwerkzeug: 'Akkuwerkzeug',
-  elektrowerkzeug: 'Elektrowerkzeug',
-  handwerkzeug: 'Handwerkzeug',
-  leiter: 'Leiter',
-  kabel_leitungen: 'Kabel & Leitungen',
-  sonstiges: 'Sonstiges',
-};
-
-const ZUSTAND_LABELS: Record<string, string> = {
-  neu: 'Neu',
-  sehr_gut: 'Sehr gut',
-  gut: 'Gut',
-  gebrauchsspuren: 'Gebrauchsspuren',
-  reparaturbeduerftig: 'Reparaturbedürftig',
-  defekt: 'Defekt',
-};
-
-const LAGERORT_TYP_LABELS: Record<string, string> = {
+// Lookup label mappings
+const LOCATION_TYPE_LABELS: Record<string, string> = {
   werkstatt: 'Werkstatt',
   fahrzeug: 'Fahrzeug',
   baustelle: 'Baustelle',
@@ -128,67 +72,56 @@ const LAGERORT_TYP_LABELS: Record<string, string> = {
   sonstiges: 'Sonstiges',
 };
 
-const RUECKGABE_ZUSTAND_LABELS: Record<string, string> = {
-  einwandfrei: 'Einwandfrei',
-  leichte_gebrauchsspuren: 'Leichte Gebrauchsspuren',
-  verschmutzt: 'Verschmutzt',
-  beschaedigt: 'Beschädigt',
-  defekt: 'Defekt',
+const KATEGORIE_LABELS: Record<string, string> = {
+  akkuwerkzeug: 'Akkuwerkzeug',
+  elektrowerkzeug: 'Elektrowerkzeug',
+  handwerkzeug: 'Handwerkzeug',
+  messgeraet: 'Messgerät',
+  pruefgeraet: 'Prüfgerät',
+  leiter: 'Leiter',
+  kabel_leitungen: 'Kabel/Leitungen',
+  sonstiges: 'Sonstiges',
 };
 
-// ============================================================================
-// Loading State Component
-// ============================================================================
-
-function LoadingState() {
+// Loading skeleton component
+function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
-      {/* Header skeleton */}
-      <div className="flex items-center justify-between mb-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-32" />
-      </div>
-
-      {/* Hero KPIs skeleton */}
-      <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24 md:h-32 rounded-xl" />
-        ))}
-      </div>
-
-      {/* Content skeleton */}
-      <div className="grid md:grid-cols-5 gap-6">
-        <div className="md:col-span-3">
-          <Skeleton className="h-[400px] rounded-xl" />
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header skeleton */}
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32" />
         </div>
-        <div className="md:col-span-2 space-y-4">
-          <Skeleton className="h-[200px] rounded-xl" />
-          <Skeleton className="h-[180px] rounded-xl" />
+
+        {/* Hero skeleton */}
+        <Skeleton className="h-48 w-full rounded-lg" />
+
+        {/* KPIs skeleton */}
+        <div className="grid grid-cols-3 gap-4">
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
         </div>
+
+        {/* Activity skeleton */}
+        <Skeleton className="h-64 w-full rounded-lg" />
       </div>
     </div>
   );
 }
 
-// ============================================================================
-// Error State Component
-// ============================================================================
-
-function ErrorState({
-  error,
-  onRetry,
-}: {
-  error: Error;
-  onRetry: () => void;
-}) {
+// Error component
+function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background p-4 md:p-6 flex items-center justify-center">
       <Alert variant="destructive" className="max-w-md">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Fehler beim Laden</AlertTitle>
         <AlertDescription className="mt-2">
-          <p className="mb-4">{error.message}</p>
-          <Button variant="outline" onClick={onRetry}>
+          {error.message}
+          <Button variant="outline" size="sm" className="mt-4 w-full" onClick={onRetry}>
+            <RefreshCw className="h-4 w-4 mr-2" />
             Erneut versuchen
           </Button>
         </AlertDescription>
@@ -197,135 +130,117 @@ function ErrorState({
   );
 }
 
-// ============================================================================
-// Hero Status Card Component
-// ============================================================================
-
-function StatusCard({
-  title,
-  value,
-  icon: Icon,
-  status,
-  onClick,
-}: {
-  title: string;
-  value: number;
-  icon: React.ElementType;
-  status: 'success' | 'warning' | 'danger';
-  onClick?: () => void;
-}) {
-  const statusColors = {
-    success: 'bg-success',
-    warning: 'bg-warning',
-    danger: 'bg-danger',
-  };
-
+// Empty state component
+function EmptyState({ onAddFirst }: { onAddFirst: () => void }) {
   return (
-    <Card
-      className={`relative overflow-hidden transition-all duration-150 hover:shadow-md ${
-        onClick ? 'cursor-pointer hover:scale-[1.02]' : ''
-      }`}
-      onClick={onClick}
-    >
-      {/* Status indicator bar */}
-      <div
-        className={`absolute left-0 top-0 bottom-0 w-1 ${statusColors[status]} rounded-l-xl`}
-      />
-      <CardContent className="p-4 md:p-6 pl-4 md:pl-6">
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="p-2 rounded-lg bg-muted">
-            <Icon className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[32px] md:text-[48px] font-bold leading-none tracking-tight">
-              {value}
-            </p>
-            <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate">
-              {title}
-            </p>
-          </div>
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Wrench className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Noch keine Werkzeuge</h2>
+          <p className="text-muted-foreground mb-6 max-w-sm">
+            Beginnen Sie mit der Verwaltung Ihrer Werkzeuge, indem Sie ein Werkzeug ausgeben.
+          </p>
+          <Button onClick={onAddFirst}>
+            <Plus className="h-4 w-4 mr-2" />
+            Erste Ausgabe erstellen
+          </Button>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ============================================================================
-// Quick Stats Card Component
-// ============================================================================
-
-function QuickStatCard({
-  title,
-  value,
-  variant = 'default',
-}: {
-  title: string;
-  value: number;
-  variant?: 'default' | 'success' | 'danger';
-}) {
-  const variantStyles = {
-    default: 'border-border',
-    success: 'border-l-4 border-l-success',
-    danger: 'border-l-4 border-l-danger',
-  };
-
-  return (
-    <div
-      className={`bg-card rounded-lg p-3 border ${variantStyles[variant]} shadow-sm`}
-    >
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="text-xs text-muted-foreground">{title}</p>
+      </div>
     </div>
   );
 }
 
-// ============================================================================
-// Checkout Card (Mobile)
-// ============================================================================
+// Progress Ring Component
+function ProgressRing({
+  value,
+  max,
+  size = 160,
+  strokeWidth = 6
+}: {
+  value: number;
+  max: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const percentage = max > 0 ? (value / max) * 100 : 0;
+  const offset = circumference - (percentage / 100) * circumference;
 
-function CheckoutCard({
-  checkout,
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg
+        className="transform -rotate-90"
+        width={size}
+        height={size}
+      >
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="hsl(var(--muted))"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="hsl(var(--primary))"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-700 ease-out"
+          style={{
+            filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.3))',
+          }}
+        />
+      </svg>
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-5xl font-bold tracking-tight">{value}</span>
+        <span className="text-sm text-muted-foreground">im Umlauf</span>
+      </div>
+    </div>
+  );
+}
+
+// Alert KPI Card Component
+function AlertKPICard({
+  title,
+  count,
+  icon: Icon,
+  variant,
   onClick,
 }: {
-  checkout: EnrichedCheckout;
-  onClick: () => void;
+  title: string;
+  count: number;
+  icon: React.ElementType;
+  variant: 'danger' | 'warning' | 'neutral';
+  onClick?: () => void;
 }) {
+  const borderColor = {
+    danger: 'border-l-[hsl(0,72%,51%)]',
+    warning: 'border-l-[hsl(38,92%,50%)]',
+    neutral: 'border-l-[hsl(215,20%,70%)]',
+  }[variant];
+
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow"
+      className={`border-l-4 ${borderColor} cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 min-w-[120px] shrink-0`}
       onClick={onClick}
     >
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className="font-medium truncate flex-1">
-            {checkout.tool?.fields.bezeichnung || 'Unbekanntes Werkzeug'}
-          </div>
-          <Badge variant={checkout.isOverdue ? 'destructive' : 'secondary'}>
-            {checkout.isOverdue ? 'Überfällig' : 'Aktiv'}
-          </Badge>
-        </div>
-        <div className="text-sm text-muted-foreground space-y-1">
-          <div className="flex items-center gap-2">
-            <User className="h-3 w-3" />
-            <span>
-              {checkout.employee
-                ? `${checkout.employee.fields.vorname || ''} ${checkout.employee.fields.nachname || ''}`.trim() ||
-                  'Unbekannt'
-                : 'Unbekannt'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-3 w-3" />
-            <span>{formatDate(checkout.checkout.fields.ausgabedatum)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3" />
-            <span
-              className={checkout.isOverdue ? 'text-destructive font-medium' : ''}
-            >
-              {checkout.daysOut} Tage
-              {checkout.isOverdue ? ' überfällig' : ' ausgegeben'}
-            </span>
+        <div className="flex items-center gap-3">
+          <Icon className="h-5 w-5 text-muted-foreground" />
+          <div>
+            <p className="text-2xl font-bold">{count}</p>
+            <p className="text-xs text-muted-foreground">{title}</p>
           </div>
         </div>
       </CardContent>
@@ -333,252 +248,90 @@ function CheckoutCard({
   );
 }
 
-// ============================================================================
-// Tool Detail Dialog
-// ============================================================================
-
-function ToolDetailDialog({
-  checkout,
-  open,
-  onOpenChange,
-}: {
-  checkout: EnrichedCheckout | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  if (!checkout) return null;
-
-  const tool = checkout.tool;
-  const employee = checkout.employee;
+// Activity Item Component
+function ActivityRow({ item }: { item: ActivityItem }) {
+  const isCheckout = item.type === 'checkout';
+  const timeAgo = formatDistance(parseISO(item.date), new Date(), {
+    addSuffix: true,
+    locale: de,
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {tool?.fields.bezeichnung || 'Werkzeug-Details'}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          {/* Tool Info */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm text-muted-foreground">
-              Werkzeug
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Hersteller:</div>
-              <div>{tool?.fields.hersteller || '-'}</div>
-              <div>Kategorie:</div>
-              <div>
-                {tool?.fields.kategorie
-                  ? KATEGORIE_LABELS[tool.fields.kategorie]
-                  : '-'}
-              </div>
-              <div>Seriennummer:</div>
-              <div>{tool?.fields.seriennummer || '-'}</div>
-              <div>Zustand:</div>
-              <div>
-                {tool?.fields.zustand
-                  ? ZUSTAND_LABELS[tool.fields.zustand]
-                  : '-'}
-              </div>
-            </div>
-          </div>
-
-          {/* Checkout Info */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm text-muted-foreground">
-              Ausgabe
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Mitarbeiter:</div>
-              <div>
-                {employee
-                  ? `${employee.fields.vorname || ''} ${employee.fields.nachname || ''}`.trim() ||
-                    '-'
-                  : '-'}
-              </div>
-              <div>Ausgabedatum:</div>
-              <div>{formatDate(checkout.checkout.fields.ausgabedatum)}</div>
-              <div>Geplante Rückgabe:</div>
-              <div
-                className={checkout.isOverdue ? 'text-destructive font-medium' : ''}
-              >
-                {formatDate(checkout.checkout.fields.geplantes_rueckgabedatum)}
-              </div>
-              <div>Verwendungszweck:</div>
-              <div>{checkout.checkout.fields.verwendungszweck || '-'}</div>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="flex justify-between items-center pt-2 border-t">
-            <span className="text-sm text-muted-foreground">Status</span>
-            <Badge variant={checkout.isOverdue ? 'destructive' : 'secondary'}>
-              {checkout.isOverdue
-                ? `${checkout.daysOut} Tage überfällig`
-                : `${checkout.daysOut} Tage ausgegeben`}
-            </Badge>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors">
+      <div className={`p-2 rounded-full ${isCheckout ? 'bg-primary/10' : 'bg-[hsl(152,60%,40%)]/10'}`}>
+        <ArrowRightLeft className={`h-4 w-4 ${isCheckout ? 'text-primary' : 'text-[hsl(152,60%,40%)]'}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium truncate">{item.werkzeugName}</p>
+        <p className="text-sm text-muted-foreground truncate">{item.mitarbeiterName}</p>
+      </div>
+      <div className="text-right shrink-0">
+        <Badge variant={isCheckout ? 'default' : 'secondary'} className={isCheckout ? '' : 'bg-[hsl(152,60%,40%)] text-white'}>
+          {isCheckout ? 'Ausgabe' : 'Rückgabe'}
+        </Badge>
+        <p className="text-xs text-muted-foreground mt-1">{timeAgo}</p>
+      </div>
+    </div>
   );
 }
 
-// ============================================================================
-// Inspection Tool Detail Dialog
-// ============================================================================
-
-function InspectionDetailDialog({
-  toolInspection,
+// Checkout Form Dialog
+function CheckoutDialog({
   open,
   onOpenChange,
-}: {
-  toolInspection: ToolWithInspection | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  if (!toolInspection) return null;
-
-  const { tool, daysUntilDue, isOverdue } = toolInspection;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Prüfung: {tool.fields.bezeichnung}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>Hersteller:</div>
-            <div>{tool.fields.hersteller || '-'}</div>
-            <div>Kategorie:</div>
-            <div>
-              {tool.fields.kategorie
-                ? KATEGORIE_LABELS[tool.fields.kategorie]
-                : '-'}
-            </div>
-            <div>Seriennummer:</div>
-            <div>{tool.fields.seriennummer || '-'}</div>
-            <div>Nächster Prüftermin:</div>
-            <div className={isOverdue ? 'text-destructive font-medium' : ''}>
-              {formatDate(tool.fields.naechster_prueftermin)}
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center pt-2 border-t">
-            <span className="text-sm text-muted-foreground">Status</span>
-            <Badge variant={isOverdue ? 'destructive' : 'default'}>
-              {isOverdue
-                ? `${Math.abs(daysUntilDue)} Tage überfällig`
-                : `In ${daysUntilDue} Tagen fällig`}
-            </Badge>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ============================================================================
-// Issue Tool Form Dialog
-// ============================================================================
-
-function IssueToolDialog({
-  open,
-  onOpenChange,
-  tools,
-  employees,
-  onSuccess,
+  werkzeuge,
+  mitarbeiter,
+  onSubmit,
+  submitting,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  tools: Werkzeuge[];
-  employees: Mitarbeiter[];
-  onSuccess: () => void;
+  werkzeuge: Werkzeuge[];
+  mitarbeiter: Mitarbeiter[];
+  onSubmit: (data: { werkzeugId: string; mitarbeiterId: string; verwendungszweck: string; rueckgabedatum: string; notizen: string }) => void;
+  submitting: boolean;
 }) {
-  const [selectedTool, setSelectedTool] = useState<string>('');
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
-  const [returnDate, setReturnDate] = useState<string>('');
-  const [purpose, setPurpose] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [werkzeugId, setWerkzeugId] = useState('');
+  const [mitarbeiterId, setMitarbeiterId] = useState('');
+  const [verwendungszweck, setVerwendungszweck] = useState('');
+  const [rueckgabedatum, setRueckgabedatum] = useState('');
+  const [notizen, setNotizen] = useState('');
 
-  // Reset form when dialog opens
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!werkzeugId || !mitarbeiterId) return;
+    onSubmit({ werkzeugId, mitarbeiterId, verwendungszweck, rueckgabedatum, notizen });
+  };
+
+  const resetForm = () => {
+    setWerkzeugId('');
+    setMitarbeiterId('');
+    setVerwendungszweck('');
+    setRueckgabedatum('');
+    setNotizen('');
+  };
+
   useEffect(() => {
-    if (open) {
-      setSelectedTool('');
-      setSelectedEmployee('');
-      setReturnDate('');
-      setPurpose('');
-      setError(null);
-    }
+    if (!open) resetForm();
   }, [open]);
 
-  // Filter to only show available tools
-  const availableTools = tools.filter((t) => t.fields.bezeichnung);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!selectedTool || !selectedEmployee) {
-      setError('Bitte Werkzeug und Mitarbeiter auswählen');
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const now = new Date();
-      // Format: YYYY-MM-DDTHH:MM (no seconds!)
-      const ausgabedatum = `${format(now, 'yyyy-MM-dd')}T${format(now, 'HH:mm')}`;
-
-      await LivingAppsService.createWerkzeugausgabeEntry({
-        werkzeug: createRecordUrl(APP_IDS.WERKZEUGE, selectedTool),
-        mitarbeiter: createRecordUrl(APP_IDS.MITARBEITER, selectedEmployee),
-        ausgabedatum,
-        geplantes_rueckgabedatum: returnDate || undefined,
-        verwendungszweck: purpose || undefined,
-      });
-
-      onSuccess();
-      onOpenChange(false);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Fehler beim Speichern'
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Werkzeug ausgeben</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
           <div className="space-y-2">
-            <Label htmlFor="tool">Werkzeug *</Label>
-            <Select value={selectedTool} onValueChange={setSelectedTool}>
+            <Label htmlFor="werkzeug">Werkzeug *</Label>
+            <Select value={werkzeugId} onValueChange={setWerkzeugId}>
               <SelectTrigger>
                 <SelectValue placeholder="Werkzeug auswählen..." />
               </SelectTrigger>
               <SelectContent>
-                {availableTools.map((tool) => (
-                  <SelectItem key={tool.record_id} value={tool.record_id}>
-                    {tool.fields.bezeichnung}
-                    {tool.fields.hersteller && ` (${tool.fields.hersteller})`}
+                {werkzeuge.map((w) => (
+                  <SelectItem key={w.record_id} value={w.record_id}>
+                    {w.fields.bezeichnung || 'Unbenannt'} {w.fields.hersteller ? `(${w.fields.hersteller})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -586,19 +339,15 @@ function IssueToolDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employee">Mitarbeiter *</Label>
-            <Select
-              value={selectedEmployee}
-              onValueChange={setSelectedEmployee}
-            >
+            <Label htmlFor="mitarbeiter">Mitarbeiter *</Label>
+            <Select value={mitarbeiterId} onValueChange={setMitarbeiterId}>
               <SelectTrigger>
                 <SelectValue placeholder="Mitarbeiter auswählen..." />
               </SelectTrigger>
               <SelectContent>
-                {employees.map((emp) => (
-                  <SelectItem key={emp.record_id} value={emp.record_id}>
-                    {`${emp.fields.vorname || ''} ${emp.fields.nachname || ''}`.trim() ||
-                      'Unbekannt'}
+                {mitarbeiter.map((m) => (
+                  <SelectItem key={m.record_id} value={m.record_id}>
+                    {m.fields.vorname} {m.fields.nachname}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -606,37 +355,42 @@ function IssueToolDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="returnDate">Geplantes Rückgabedatum</Label>
+            <Label htmlFor="verwendungszweck">Verwendungszweck</Label>
             <Input
-              id="returnDate"
-              type="date"
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
+              id="verwendungszweck"
+              value={verwendungszweck}
+              onChange={(e) => setVerwendungszweck(e.target.value)}
+              placeholder="z.B. Baustelle Musterstraße"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="purpose">Verwendungszweck</Label>
+            <Label htmlFor="rueckgabedatum">Geplantes Rückgabedatum</Label>
             <Input
-              id="purpose"
-              type="text"
-              placeholder="z.B. Baustelle Hauptstraße"
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
+              id="rueckgabedatum"
+              type="date"
+              value={rueckgabedatum}
+              onChange={(e) => setRueckgabedatum(e.target.value)}
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-            >
+          <div className="space-y-2">
+            <Label htmlFor="notizen">Notizen</Label>
+            <Textarea
+              id="notizen"
+              value={notizen}
+              onChange={(e) => setNotizen(e.target.value)}
+              placeholder="Optionale Bemerkungen..."
+              rows={2}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Abbrechen
             </Button>
-            <Button type="submit" className="flex-1" disabled={submitting}>
-              {submitting ? 'Speichern...' : 'Ausgeben'}
+            <Button type="submit" disabled={!werkzeugId || !mitarbeiterId || submitting}>
+              {submitting ? 'Wird gespeichert...' : 'Ausgeben'}
             </Button>
           </div>
         </form>
@@ -645,638 +399,489 @@ function IssueToolDialog({
   );
 }
 
-// ============================================================================
-// Return Tool Form Dialog
-// ============================================================================
-
-function ReturnToolDialog({
+// Detail Dialog for filtered lists
+function DetailListDialog({
   open,
   onOpenChange,
-  activeCheckouts,
-  locations,
-  onSuccess,
+  title,
+  items,
+  renderItem,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  activeCheckouts: EnrichedCheckout[];
-  locations: Lagerorte[];
-  onSuccess: () => void;
+  title: string;
+  items: Array<{ id: string; primary: string; secondary?: string }>;
+  renderItem?: (item: { id: string; primary: string; secondary?: string }) => React.ReactNode;
 }) {
-  const [selectedCheckout, setSelectedCheckout] = useState<string>('');
-  const [selectedLocation, setSelectedLocation] = useState<string>('');
-  const [condition, setCondition] = useState<string>('');
-  const [damages, setDamages] = useState<string>('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      setSelectedCheckout('');
-      setSelectedLocation('');
-      setCondition('');
-      setDamages('');
-      setError(null);
-    }
-  }, [open]);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!selectedCheckout) {
-      setError('Bitte eine Ausgabe auswählen');
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const now = new Date();
-      // Format: YYYY-MM-DDTHH:MM (no seconds!)
-      const rueckgabedatum = `${format(now, 'yyyy-MM-dd')}T${format(now, 'HH:mm')}`;
-
-      await LivingAppsService.createWerkzeugrueckgabeEntry({
-        ausgabe: createRecordUrl(APP_IDS.WERKZEUGAUSGABE, selectedCheckout),
-        rueckgabedatum,
-        rueckgabe_lagerort: selectedLocation
-          ? createRecordUrl(APP_IDS.LAGERORTE, selectedLocation)
-          : undefined,
-        zustand_bei_rueckgabe: condition as Werkzeugrueckgabe['fields']['zustand_bei_rueckgabe'],
-        beschaedigungen: damages || undefined,
-      });
-
-      onSuccess();
-      onOpenChange(false);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Fehler beim Speichern'
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Werkzeug zurückgeben</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+        <ScrollArea className="max-h-[400px]">
+          {items.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Keine Einträge</p>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item) => (
+                renderItem ? renderItem(item) : (
+                  <div key={item.id} className="p-3 bg-muted/50 rounded-lg">
+                    <p className="font-medium">{item.primary}</p>
+                    {item.secondary && (
+                      <p className="text-sm text-muted-foreground">{item.secondary}</p>
+                    )}
+                  </div>
+                )
+              ))}
+            </div>
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="checkout">Ausgabe *</Label>
-            <Select value={selectedCheckout} onValueChange={setSelectedCheckout}>
-              <SelectTrigger>
-                <SelectValue placeholder="Ausgabe auswählen..." />
-              </SelectTrigger>
-              <SelectContent>
-                {activeCheckouts.map((checkout) => (
-                  <SelectItem
-                    key={checkout.checkout.record_id}
-                    value={checkout.checkout.record_id}
-                  >
-                    {checkout.tool?.fields.bezeichnung || 'Unbekannt'} -{' '}
-                    {checkout.employee
-                      ? `${checkout.employee.fields.vorname || ''} ${checkout.employee.fields.nachname || ''}`.trim()
-                      : 'Unbekannt'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Rückgabe-Lagerort</Label>
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger>
-                <SelectValue placeholder="Lagerort auswählen..." />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc) => (
-                  <SelectItem key={loc.record_id} value={loc.record_id}>
-                    {loc.fields.ortsbezeichnung || 'Unbekannt'}
-                    {loc.fields.typ && ` (${LAGERORT_TYP_LABELS[loc.fields.typ]})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="condition">Zustand bei Rückgabe</Label>
-            <Select value={condition} onValueChange={setCondition}>
-              <SelectTrigger>
-                <SelectValue placeholder="Zustand auswählen..." />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(RUECKGABE_ZUSTAND_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="damages">Beschädigungen</Label>
-            <Input
-              id="damages"
-              type="text"
-              placeholder="Beschädigungen beschreiben..."
-              value={damages}
-              onChange={(e) => setDamages(e.target.value)}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-            >
-              Abbrechen
-            </Button>
-            <Button type="submit" className="flex-1" disabled={submitting}>
-              {submitting ? 'Speichern...' : 'Zurückgeben'}
-            </Button>
-          </div>
-        </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
 }
 
-// ============================================================================
 // Main Dashboard Component
-// ============================================================================
-
 export default function Dashboard() {
   // Data state
-  const [tools, setTools] = useState<Werkzeuge[]>([]);
+  const [werkzeuge, setWerkzeuge] = useState<Werkzeuge[]>([]);
   const [checkouts, setCheckouts] = useState<Werkzeugausgabe[]>([]);
   const [returns, setReturns] = useState<Werkzeugrueckgabe[]>([]);
-  const [employees, setEmployees] = useState<Mitarbeiter[]>([]);
   const [locations, setLocations] = useState<Lagerorte[]>([]);
+  const [mitarbeiter, setMitarbeiter] = useState<Mitarbeiter[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
-  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
-  const [selectedCheckout, setSelectedCheckout] = useState<EnrichedCheckout | null>(null);
-  const [selectedInspection, setSelectedInspection] = useState<ToolWithInspection | null>(null);
+  const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Detail dialogs
+  const [overdueDialogOpen, setOverdueDialogOpen] = useState(false);
+  const [inspectionDialogOpen, setInspectionDialogOpen] = useState(false);
+  const [repairDialogOpen, setRepairDialogOpen] = useState(false);
 
   // Fetch all data
-  async function fetchData() {
+  const fetchData = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const [toolsData, checkoutsData, returnsData, employeesData, locationsData] =
-        await Promise.all([
-          LivingAppsService.getWerkzeuge(),
-          LivingAppsService.getWerkzeugausgabe(),
-          LivingAppsService.getWerkzeugrueckgabe(),
-          LivingAppsService.getMitarbeiter(),
-          LivingAppsService.getLagerorte(),
-        ]);
-
-      setTools(toolsData);
-      setCheckouts(checkoutsData);
-      setReturns(returnsData);
-      setEmployees(employeesData);
-      setLocations(locationsData);
+      const [w, c, r, l, m] = await Promise.all([
+        LivingAppsService.getWerkzeuge(),
+        LivingAppsService.getWerkzeugausgabe(),
+        LivingAppsService.getWerkzeugrueckgabe(),
+        LivingAppsService.getLagerorte(),
+        LivingAppsService.getMitarbeiter(),
+      ]);
+      setWerkzeuge(w);
+      setCheckouts(c);
+      setReturns(r);
+      setLocations(l);
+      setMitarbeiter(m);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unbekannter Fehler'));
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchData();
   }, []);
 
   // Create lookup maps
-  const toolMap = useMemo(() => {
+  const werkzeugMap = useMemo(() => {
     const map = new Map<string, Werkzeuge>();
-    tools.forEach((t) => map.set(t.record_id, t));
+    werkzeuge.forEach((w) => map.set(w.record_id, w));
     return map;
-  }, [tools]);
+  }, [werkzeuge]);
 
-  const employeeMap = useMemo(() => {
+  const mitarbeiterMap = useMemo(() => {
     const map = new Map<string, Mitarbeiter>();
-    employees.forEach((e) => map.set(e.record_id, e));
+    mitarbeiter.forEach((m) => map.set(m.record_id, m));
     return map;
-  }, [employees]);
+  }, [mitarbeiter]);
 
-  // Set of returned checkout IDs
+  const locationMap = useMemo(() => {
+    const map = new Map<string, Lagerorte>();
+    locations.forEach((l) => map.set(l.record_id, l));
+    return map;
+  }, [locations]);
+
+  // Create set of returned checkout IDs
   const returnedCheckoutIds = useMemo(() => {
-    const ids = new Set<string>();
+    const set = new Set<string>();
     returns.forEach((r) => {
       const checkoutId = extractRecordId(r.fields.ausgabe);
-      if (checkoutId) ids.add(checkoutId);
+      if (checkoutId) set.add(checkoutId);
     });
-    return ids;
+    return set;
   }, [returns]);
 
-  // Active checkouts (not returned)
+  // Calculate active checkouts (not returned)
   const activeCheckouts = useMemo<EnrichedCheckout[]>(() => {
-    const today = new Date();
-
     return checkouts
       .filter((c) => !returnedCheckoutIds.has(c.record_id))
-      .map((checkout) => {
-        const toolId = extractRecordId(checkout.fields.werkzeug);
-        const employeeId = extractRecordId(checkout.fields.mitarbeiter);
-        const tool = toolId ? toolMap.get(toolId) || null : null;
-        const employee = employeeId ? employeeMap.get(employeeId) || null : null;
-
-        // Calculate overdue status
-        let isOverdue = false;
-        let daysOut = 0;
-
-        if (checkout.fields.ausgabedatum) {
-          const checkoutDate = parseISO(checkout.fields.ausgabedatum.split('T')[0]);
-          daysOut = differenceInDays(today, checkoutDate);
-        }
-
-        if (checkout.fields.geplantes_rueckgabedatum) {
-          const plannedReturn = parseISO(checkout.fields.geplantes_rueckgabedatum);
-          isOverdue = today > plannedReturn;
-          if (isOverdue) {
-            daysOut = differenceInDays(today, plannedReturn);
-          }
-        }
-
-        return { checkout, tool, employee, isOverdue, daysOut };
-      })
-      .sort((a, b) => {
-        // Overdue first, then by days out descending
-        if (a.isOverdue !== b.isOverdue) return a.isOverdue ? -1 : 1;
-        return b.daysOut - a.daysOut;
+      .map((c) => {
+        const werkzeugId = extractRecordId(c.fields.werkzeug);
+        const mitarbeiterId = extractRecordId(c.fields.mitarbeiter);
+        return {
+          ...c,
+          werkzeugData: werkzeugId ? werkzeugMap.get(werkzeugId) : undefined,
+          mitarbeiterData: mitarbeiterId ? mitarbeiterMap.get(mitarbeiterId) : undefined,
+          isReturned: false,
+        };
       });
-  }, [checkouts, returnedCheckoutIds, toolMap, employeeMap]);
+  }, [checkouts, returnedCheckoutIds, werkzeugMap, mitarbeiterMap]);
 
-  // Tools with upcoming inspections (next 60 days)
-  const toolsWithInspections = useMemo<ToolWithInspection[]>(() => {
-    const today = new Date();
-    const sixtyDaysFromNow = addDays(today, 60);
-
-    return tools
-      .filter((t) => t.fields.pruefpflicht && t.fields.naechster_prueftermin)
-      .map((tool) => {
-        const dueDate = parseISO(tool.fields.naechster_prueftermin!);
-        const daysUntilDue = differenceInDays(dueDate, today);
-        const isOverdue = daysUntilDue < 0;
-        return { tool, daysUntilDue, isOverdue };
-      })
-      .filter(({ tool }) => {
-        const dueDate = parseISO(tool.fields.naechster_prueftermin!);
-        return dueDate <= sixtyDaysFromNow;
-      })
-      .sort((a, b) => a.daysUntilDue - b.daysUntilDue);
-  }, [tools]);
-
-  // KPI calculations
+  // Calculate KPIs
   const checkedOutCount = activeCheckouts.length;
-  const overdueCount = activeCheckouts.filter((c) => c.isOverdue).length;
-  const inspectionsDueCount = toolsWithInspections.filter(
-    (t) => t.daysUntilDue <= 30
-  ).length;
+  const totalTools = werkzeuge.length;
 
-  // Quick stats
-  const totalTools = tools.length;
-  const availableTools = totalTools - checkedOutCount;
-  const needsRepairCount = tools.filter(
-    (t) =>
-      t.fields.zustand === 'reparaturbeduerftig' || t.fields.zustand === 'defekt'
-  ).length;
+  // Overdue tools
+  const overdueCheckouts = useMemo(() => {
+    const today = new Date();
+    return activeCheckouts.filter((c) => {
+      if (!c.fields.geplantes_rueckgabedatum) return false;
+      const dueDate = parseISO(c.fields.geplantes_rueckgabedatum);
+      return isBefore(dueDate, today);
+    });
+  }, [activeCheckouts]);
 
-  // Handle data refresh
-  function handleRefresh() {
-    fetchData();
-  }
+  // Tools due for inspection (within 30 days)
+  const inspectionDue = useMemo(() => {
+    const thirtyDaysFromNow = addDays(new Date(), 30);
+    const today = new Date();
+    return werkzeuge.filter((w) => {
+      if (!w.fields.pruefpflicht || !w.fields.naechster_prueftermin) return false;
+      const inspectionDate = parseISO(w.fields.naechster_prueftermin);
+      return isBefore(inspectionDate, thirtyDaysFromNow) && !isBefore(inspectionDate, today);
+    });
+  }, [werkzeuge]);
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState error={error} onRetry={handleRefresh} />;
+  // Overdue inspections
+  const inspectionOverdue = useMemo(() => {
+    const today = new Date();
+    return werkzeuge.filter((w) => {
+      if (!w.fields.pruefpflicht || !w.fields.naechster_prueftermin) return false;
+      const inspectionDate = parseISO(w.fields.naechster_prueftermin);
+      return isBefore(inspectionDate, today);
+    });
+  }, [werkzeuge]);
+
+  const allInspectionIssues = [...inspectionOverdue, ...inspectionDue];
+
+  // Tools needing repair
+  const needsRepair = useMemo(() => {
+    return werkzeuge.filter((w) =>
+      w.fields.zustand === 'reparaturbeduerftig' || w.fields.zustand === 'defekt'
+    );
+  }, [werkzeuge]);
+
+  // Recent activity (combined checkouts and returns)
+  const recentActivity = useMemo<ActivityItem[]>(() => {
+    const activities: ActivityItem[] = [];
+
+    // Add checkouts
+    checkouts.forEach((c) => {
+      const werkzeugId = extractRecordId(c.fields.werkzeug);
+      const mitarbeiterId = extractRecordId(c.fields.mitarbeiter);
+      const werkzeug = werkzeugId ? werkzeugMap.get(werkzeugId) : undefined;
+      const ma = mitarbeiterId ? mitarbeiterMap.get(mitarbeiterId) : undefined;
+
+      activities.push({
+        id: `checkout-${c.record_id}`,
+        type: 'checkout',
+        date: c.fields.ausgabedatum || c.createdat,
+        werkzeugName: werkzeug?.fields.bezeichnung || 'Unbekanntes Werkzeug',
+        mitarbeiterName: ma ? `${ma.fields.vorname} ${ma.fields.nachname}` : 'Unbekannt',
+      });
+    });
+
+    // Add returns
+    returns.forEach((r) => {
+      const checkoutId = extractRecordId(r.fields.ausgabe);
+      const checkout = checkoutId ? checkouts.find((c) => c.record_id === checkoutId) : undefined;
+      if (!checkout) return;
+
+      const werkzeugId = extractRecordId(checkout.fields.werkzeug);
+      const mitarbeiterId = extractRecordId(checkout.fields.mitarbeiter);
+      const werkzeug = werkzeugId ? werkzeugMap.get(werkzeugId) : undefined;
+      const ma = mitarbeiterId ? mitarbeiterMap.get(mitarbeiterId) : undefined;
+
+      activities.push({
+        id: `return-${r.record_id}`,
+        type: 'return',
+        date: r.fields.rueckgabedatum || r.createdat,
+        werkzeugName: werkzeug?.fields.bezeichnung || 'Unbekanntes Werkzeug',
+        mitarbeiterName: ma ? `${ma.fields.vorname} ${ma.fields.nachname}` : 'Unbekannt',
+      });
+    });
+
+    // Sort by date, newest first
+    return activities.sort((a, b) => b.date.localeCompare(a.date));
+  }, [checkouts, returns, werkzeugMap, mitarbeiterMap]);
+
+  // Tools by location for chart
+  const toolsByLocation = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    werkzeuge.forEach((w) => {
+      const locationId = extractRecordId(w.fields.aktueller_lagerort);
+      const location = locationId ? locationMap.get(locationId) : null;
+      const locationName = location?.fields.ortsbezeichnung || 'Ohne Standort';
+      counts.set(locationName, (counts.get(locationName) || 0) + 1);
+    });
+
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  }, [werkzeuge, locationMap]);
+
+  // Handle checkout submission
+  const handleCheckoutSubmit = async (data: {
+    werkzeugId: string;
+    mitarbeiterId: string;
+    verwendungszweck: string;
+    rueckgabedatum: string;
+    notizen: string;
+  }) => {
+    setSubmitting(true);
+    try {
+      const now = new Date();
+      const ausgabedatum = format(now, "yyyy-MM-dd'T'HH:mm");
+
+      await LivingAppsService.createWerkzeugausgabeEntry({
+        werkzeug: createRecordUrl(APP_IDS.WERKZEUGE, data.werkzeugId),
+        mitarbeiter: createRecordUrl(APP_IDS.MITARBEITER, data.mitarbeiterId),
+        ausgabedatum,
+        geplantes_rueckgabedatum: data.rueckgabedatum || undefined,
+        verwendungszweck: data.verwendungszweck || undefined,
+        notizen: data.notizen || undefined,
+      });
+
+      setCheckoutDialogOpen(false);
+      await fetchData(); // Refresh data
+    } catch (err) {
+      console.error('Failed to create checkout:', err);
+      alert('Fehler beim Erstellen der Ausgabe. Bitte versuchen Sie es erneut.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Render states
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <ErrorState error={error} onRetry={fetchData} />;
+  if (werkzeuge.length === 0) return <EmptyState onAddFirst={() => setCheckoutDialogOpen(true)} />;
+
+  // Pie chart data for hero
+  const pieData = [
+    { name: 'Im Umlauf', value: checkedOutCount, color: 'hsl(var(--primary))' },
+    { name: 'Verfügbar', value: totalTools - checkedOutCount, color: 'hsl(var(--muted))' },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <h1 className="text-lg md:text-xl font-semibold">Werkzeugverwaltung</h1>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:flex"
-              onClick={() => setReturnDialogOpen(true)}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Rückgabe
-            </Button>
-            <Button size="sm" onClick={() => setIssueDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Werkzeug </span>ausgeben
-            </Button>
-          </div>
+          <Button onClick={() => setCheckoutDialogOpen(true)} className="shadow-sm">
+            <Plus className="h-4 w-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Werkzeug ausgeben</span>
+            <span className="sm:hidden">Ausgabe</span>
+          </Button>
         </div>
       </header>
 
-      <main className="px-4 md:px-6 py-4 md:py-6 space-y-6">
-        {/* Hero Status Cards */}
-        <section>
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
-            <StatusCard
-              title="Ausgegeben"
-              value={checkedOutCount}
-              icon={Wrench}
-              status={getStatusColor(checkedOutCount, {
-                warning: Math.floor(totalTools * 0.3),
-                danger: Math.floor(totalTools * 0.5),
-              })}
-            />
-            <StatusCard
-              title="Überfällig"
-              value={overdueCount}
-              icon={AlertTriangle}
-              status={getStatusColor(overdueCount, { warning: 3, danger: 3 })}
-            />
-            <StatusCard
-              title="Prüfung fällig"
-              value={inspectionsDueCount}
-              icon={ClipboardCheck}
-              status={getStatusColor(inspectionsDueCount, { warning: 5, danger: 5 })}
-            />
-          </div>
-        </section>
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left column (main content) - 3 cols on desktop */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Hero Card */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  {/* Progress Ring */}
+                  <div className="shrink-0">
+                    <ProgressRing
+                      value={checkedOutCount}
+                      max={totalTools}
+                      size={160}
+                      strokeWidth={6}
+                    />
+                  </div>
 
-        {/* Main Content */}
-        <section className="grid md:grid-cols-5 gap-6">
-          {/* Current Checkouts - 60% */}
-          <div className="md:col-span-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base md:text-lg">
-                    Aktuelle Ausgaben
-                  </CardTitle>
-                  <Badge variant="secondary">{activeCheckouts.length}</Badge>
+                  {/* Hero text */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h2 className="text-2xl font-semibold mb-1">Werkzeuge im Umlauf</h2>
+                    <p className="text-muted-foreground mb-4">
+                      von {totalTools} Werkzeugen im Bestand
+                    </p>
+
+                    {/* Mini breakdown - hide on mobile */}
+                    <div className="hidden md:grid grid-cols-2 gap-4 mt-4">
+                      {Object.entries(
+                        activeCheckouts.reduce((acc, c) => {
+                          const kategorie = c.werkzeugData?.fields.kategorie || 'sonstiges';
+                          acc[kategorie] = (acc[kategorie] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>)
+                      )
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 4)
+                        .map(([kategorie, count]) => (
+                          <div key={kategorie} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{KATEGORIE_LABELS[kategorie] || kategorie}</span>
+                            <span className="font-medium">{count}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Alert KPIs - Horizontal scroll on mobile */}
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3">
+              <AlertKPICard
+                title="Überfällig"
+                count={overdueCheckouts.length}
+                icon={Clock}
+                variant={overdueCheckouts.length > 0 ? 'danger' : 'neutral'}
+                onClick={() => setOverdueDialogOpen(true)}
+              />
+              <AlertKPICard
+                title="Prüfung fällig"
+                count={allInspectionIssues.length}
+                icon={ClipboardCheck}
+                variant={allInspectionIssues.length > 0 ? 'warning' : 'neutral'}
+                onClick={() => setInspectionDialogOpen(true)}
+              />
+              <AlertKPICard
+                title="Reparaturbedürftig"
+                count={needsRepair.length}
+                icon={Wrench}
+                variant={needsRepair.length > 0 ? 'neutral' : 'neutral'}
+                onClick={() => setRepairDialogOpen(true)}
+              />
+            </div>
+
+            {/* Location Chart - Desktop only */}
+            <Card className="hidden lg:block">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Werkzeuge nach Standort</CardTitle>
               </CardHeader>
               <CardContent>
-                {activeCheckouts.length === 0 ? (
-                  <div className="py-8 text-center text-muted-foreground">
-                    <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Keine Werkzeuge ausgegeben</p>
-                    <Button
-                      variant="link"
-                      className="mt-2"
-                      onClick={() => setIssueDialogOpen(true)}
-                    >
-                      Erstes Werkzeug ausgeben
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Mobile: Cards */}
-                    <div className="md:hidden space-y-3">
-                      {activeCheckouts.slice(0, 5).map((checkout) => (
-                        <CheckoutCard
-                          key={checkout.checkout.record_id}
-                          checkout={checkout}
-                          onClick={() => setSelectedCheckout(checkout)}
+                {toolsByLocation.length > 0 ? (
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={toolsByLocation} layout="vertical" margin={{ left: 0, right: 20 }}>
+                        <XAxis type="number" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          tick={{ fontSize: 12 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          width={120}
                         />
-                      ))}
-                      {activeCheckouts.length > 5 && (
-                        <p className="text-center text-sm text-muted-foreground pt-2">
-                          +{activeCheckouts.length - 5} weitere Ausgaben
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Desktop: Table */}
-                    <div className="hidden md:block">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Werkzeug</TableHead>
-                            <TableHead>Mitarbeiter</TableHead>
-                            <TableHead>Ausgabe</TableHead>
-                            <TableHead>Geplante Rückgabe</TableHead>
-                            <TableHead className="text-right">Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {activeCheckouts.slice(0, 10).map((checkout) => (
-                            <TableRow
-                              key={checkout.checkout.record_id}
-                              className="cursor-pointer hover:bg-muted/50"
-                              onClick={() => setSelectedCheckout(checkout)}
-                            >
-                              <TableCell className="font-medium">
-                                {checkout.tool?.fields.bezeichnung || 'Unbekannt'}
-                              </TableCell>
-                              <TableCell>
-                                {checkout.employee
-                                  ? `${checkout.employee.fields.vorname || ''} ${checkout.employee.fields.nachname || ''}`.trim() ||
-                                    'Unbekannt'
-                                  : 'Unbekannt'}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(checkout.checkout.fields.ausgabedatum)}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(
-                                  checkout.checkout.fields.geplantes_rueckgabedatum
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Badge
-                                  variant={
-                                    checkout.isOverdue ? 'destructive' : 'secondary'
-                                  }
-                                >
-                                  {checkout.isOverdue ? 'Überfällig' : 'Aktiv'}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      {activeCheckouts.length > 10 && (
-                        <p className="text-center text-sm text-muted-foreground pt-4">
-                          +{activeCheckouts.length - 10} weitere Ausgaben
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - 40% */}
-          <div className="md:col-span-2 space-y-6">
-            {/* Inspections Due */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base md:text-lg">
-                    Prüfungen fällig
-                  </CardTitle>
-                  <Badge variant="secondary">
-                    {toolsWithInspections.length}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {toolsWithInspections.length === 0 ? (
-                  <div className="py-6 text-center text-muted-foreground">
-                    <CheckCircle className="h-10 w-10 mx-auto mb-2 text-success opacity-70" />
-                    <p className="text-sm">Keine Prüfungen fällig</p>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number) => [`${value} Werkzeuge`, 'Anzahl']}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="hsl(var(--primary))"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {toolsWithInspections.slice(0, 8).map(({ tool, daysUntilDue, isOverdue }) => (
-                      <div
-                        key={tool.record_id}
-                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
-                          isOverdue
-                            ? 'bg-destructive/10 hover:bg-destructive/15'
-                            : daysUntilDue <= 7
-                            ? 'bg-accent hover:bg-accent/80'
-                            : 'hover:bg-muted'
-                        }`}
-                        onClick={() =>
-                          setSelectedInspection({ tool, daysUntilDue, isOverdue })
-                        }
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <ClipboardCheck
-                            className={`h-4 w-4 flex-shrink-0 ${
-                              isOverdue
-                                ? 'text-destructive'
-                                : daysUntilDue <= 7
-                                ? 'text-warning'
-                                : 'text-muted-foreground'
-                            }`}
-                          />
-                          <span className="text-sm truncate">
-                            {tool.fields.bezeichnung}
-                          </span>
-                        </div>
-                        <span
-                          className={`text-xs font-medium flex-shrink-0 ${
-                            isOverdue
-                              ? 'text-destructive'
-                              : daysUntilDue <= 7
-                              ? 'text-warning'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          {isOverdue
-                            ? `${Math.abs(daysUntilDue)}d überfällig`
-                            : `${daysUntilDue}d`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-muted-foreground text-center py-8">Keine Standortdaten verfügbar</p>
                 )}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base md:text-lg">
-                  Schnellübersicht
-                </CardTitle>
+          {/* Right column (sidebar) - 2 cols on desktop */}
+          <div className="lg:col-span-2">
+            <Card className="lg:sticky lg:top-20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Letzte Aktivitäten</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  <QuickStatCard title="Werkzeuge gesamt" value={totalTools} />
-                  <QuickStatCard
-                    title="Verfügbar"
-                    value={availableTools}
-                    variant="success"
-                  />
-                  <QuickStatCard
-                    title="An Mitarbeiter"
-                    value={checkedOutCount}
-                  />
-                  <QuickStatCard
-                    title="Reparaturbedürftig"
-                    value={needsRepairCount}
-                    variant={needsRepairCount > 0 ? 'danger' : 'default'}
-                  />
-                </div>
+              <CardContent className="p-0">
+                <ScrollArea className="h-[400px] lg:h-[500px]">
+                  <div className="px-4 pb-4">
+                    {recentActivity.length > 0 ? (
+                      recentActivity.slice(0, 10).map((item) => (
+                        <ActivityRow key={item.id} item={item} />
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-center py-8">
+                        Noch keine Aktivitäten
+                      </p>
+                    )}
+                  </div>
+                </ScrollArea>
               </CardContent>
             </Card>
           </div>
-        </section>
+        </div>
       </main>
 
-      {/* Mobile Fixed Bottom Action */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setReturnDialogOpen(true)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Rückgabe
-          </Button>
-          <Button className="flex-1" onClick={() => setIssueDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ausgeben
-          </Button>
-        </div>
-      </div>
-
-      {/* Spacer for mobile fixed bottom action */}
-      <div className="md:hidden h-20" />
-
-      {/* Dialogs */}
-      <IssueToolDialog
-        open={issueDialogOpen}
-        onOpenChange={setIssueDialogOpen}
-        tools={tools}
-        employees={employees}
-        onSuccess={handleRefresh}
+      {/* Checkout Dialog */}
+      <CheckoutDialog
+        open={checkoutDialogOpen}
+        onOpenChange={setCheckoutDialogOpen}
+        werkzeuge={werkzeuge}
+        mitarbeiter={mitarbeiter}
+        onSubmit={handleCheckoutSubmit}
+        submitting={submitting}
       />
 
-      <ReturnToolDialog
-        open={returnDialogOpen}
-        onOpenChange={setReturnDialogOpen}
-        activeCheckouts={activeCheckouts}
-        locations={locations}
-        onSuccess={handleRefresh}
+      {/* Overdue Tools Dialog */}
+      <DetailListDialog
+        open={overdueDialogOpen}
+        onOpenChange={setOverdueDialogOpen}
+        title="Überfällige Werkzeuge"
+        items={overdueCheckouts.map((c) => ({
+          id: c.record_id,
+          primary: c.werkzeugData?.fields.bezeichnung || 'Unbekannt',
+          secondary: `Fällig: ${c.fields.geplantes_rueckgabedatum ? format(parseISO(c.fields.geplantes_rueckgabedatum), 'dd.MM.yyyy') : 'N/A'} • ${c.mitarbeiterData ? `${c.mitarbeiterData.fields.vorname} ${c.mitarbeiterData.fields.nachname}` : 'Unbekannt'}`,
+        }))}
       />
 
-      <ToolDetailDialog
-        checkout={selectedCheckout}
-        open={!!selectedCheckout}
-        onOpenChange={(open) => !open && setSelectedCheckout(null)}
+      {/* Inspection Due Dialog */}
+      <DetailListDialog
+        open={inspectionDialogOpen}
+        onOpenChange={setInspectionDialogOpen}
+        title="Prüfungen fällig"
+        items={allInspectionIssues.map((w) => ({
+          id: w.record_id,
+          primary: w.fields.bezeichnung || 'Unbekannt',
+          secondary: `Prüftermin: ${w.fields.naechster_prueftermin ? format(parseISO(w.fields.naechster_prueftermin), 'dd.MM.yyyy') : 'N/A'}`,
+        }))}
       />
 
-      <InspectionDetailDialog
-        toolInspection={selectedInspection}
-        open={!!selectedInspection}
-        onOpenChange={(open) => !open && setSelectedInspection(null)}
+      {/* Repair Needed Dialog */}
+      <DetailListDialog
+        open={repairDialogOpen}
+        onOpenChange={setRepairDialogOpen}
+        title="Reparaturbedürftige Werkzeuge"
+        items={needsRepair.map((w) => ({
+          id: w.record_id,
+          primary: w.fields.bezeichnung || 'Unbekannt',
+          secondary: `Zustand: ${w.fields.zustand === 'defekt' ? 'Defekt' : 'Reparaturbedürftig'}`,
+        }))}
       />
     </div>
   );
