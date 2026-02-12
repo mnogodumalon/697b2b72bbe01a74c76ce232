@@ -464,6 +464,63 @@ Think about what action users perform most often:
 
 The implementation skill knows how to create forms that send data to Living Apps API.
 
+### CRUD Operations Per App (REQUIRED!)
+
+**⚠️ Every app in the dashboard MUST support full CRUD operations (Create, Read, Update, Delete).**
+
+This dashboard is a **full data management tool**, not just a read-only display. Users must be able to manage ALL their data directly from the dashboard - for EVERY app that is part of this appgroup.
+
+**For EACH app in app_metadata.json, specify:**
+
+**[App Name] CRUD Operations**
+
+- **Create (Erstellen):**
+  - **Trigger:** [How does the user start creating? E.g. "+" button, "Neuen Eintrag erstellen" button]
+  - **Form fields:** [List ALL fields the user fills out, with their types]
+  - **Form style:** [Dialog/Modal (recommended) | Inline form | Bottom sheet on mobile]
+  - **Required fields:** [Which fields are mandatory?]
+  - **Default values:** [Any pre-filled values? E.g. today's date]
+
+- **Read (Anzeigen):**
+  - **List view:** [How are records displayed? Table, cards, list items?]
+  - **Detail view:** [Click on record → what detail view opens? Dialog, slide-over, expand-in-place?]
+  - **Fields shown in list:** [Which fields visible in overview]
+  - **Fields shown in detail:** [All fields visible when opened]
+  - **Sort:** [Default sort order]
+  - **Filter/Search:** [Can users filter? By which fields?]
+
+- **Update (Bearbeiten):**
+  - **Trigger:** [How does user start editing? E.g. click edit icon, double-click row, swipe action]
+  - **Edit style:** [Same dialog as Create but pre-filled | Inline editing | Separate edit view]
+  - **Editable fields:** [Which fields can be changed? Usually all, but specify exceptions]
+
+- **Delete (Löschen):**
+  - **Trigger:** [How does user delete? E.g. swipe left, delete icon, context menu]
+  - **Confirmation:** [Always require confirmation! Describe the confirmation dialog]
+  - **Confirmation text:** [E.g. "Möchtest du diesen Eintrag wirklich löschen?"]
+
+**Design Considerations for CRUD:**
+
+1. **Consistency** - All apps should use the same CRUD patterns (same dialog style, same button placement)
+2. **Discoverability** - Edit and delete actions should be easy to find but not accidentally triggered
+3. **Mobile-friendly** - Swipe gestures for edit/delete on mobile, icon buttons on desktop
+4. **Feedback** - Show success/error toast after every operation
+5. **Optimistic UI** - Update the list immediately, revert on error
+6. **Data refresh** - After create/update/delete, refresh the relevant data
+
+**Example:**
+
+```markdown
+**Workouts CRUD Operations**
+
+- **Create:** FAB button "+" opens a Dialog with fields: Datum (date), Übung (select from Übungen app), Sätze (number), Wiederholungen (number), Gewicht (number)
+- **Read:** Card list sorted by date (newest first). Click card → Detail Dialog showing all fields + related Übung name
+- **Update:** Edit icon (pencil) in detail view → Same dialog as Create, pre-filled with current values
+- **Delete:** Trash icon in detail view → Confirmation dialog "Workout vom {datum} wirklich löschen?"
+```
+
+**⚠️ Do NOT skip any app!** Even if an app seems like "reference data" (e.g. Categories, Exercises), users still need to manage it. Every app gets full CRUD.
+
 ---
 
 ## 7. Visual Details
@@ -522,6 +579,8 @@ The implementer should verify:
 - [ ] Desktop layout matches Section 5
 - [ ] Hero element is prominent as described
 - [ ] Colors create the mood described in Section 2
+- [ ] CRUD patterns are consistent across all apps
+- [ ] Delete confirmations are in place
 ```
 
 ---
@@ -578,9 +637,13 @@ Before finalizing design_brief.md:
 - [ ] Does desktop use horizontal space meaningfully?
 - [ ] Would this get featured in the App Store?
 
-### Interactivity
+### Interactivity & CRUD
 - [ ] Is the primary action clearly defined?
 - [ ] Are clickable elements marked where drill-down adds value?
+- [ ] Does EVERY app have full CRUD operations defined (Create, Read, Update, Delete)?
+- [ ] Are CRUD patterns consistent across all apps (same dialog style, button placement)?
+- [ ] Is there a clear way to edit and delete records (not hidden, not accidental)?
+- [ ] Is delete confirmation always required?
 
 ### Information
 - [ ] Is the visual hierarchy clear?

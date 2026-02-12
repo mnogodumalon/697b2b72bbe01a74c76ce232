@@ -73,7 +73,7 @@ Read the ENTIRE brief carefully. Pay attention to:
 - **Section 3: Theme & Colors** → Font name, URL, and all color values
 - **Section 4: Mobile Layout** → Exact structure for phone screens
 - **Section 5: Desktop Layout** → Exact structure for computer screens
-- **Section 6: Components** → Hero KPI, secondary KPIs, charts, lists
+- **Section 6: Components** → Hero KPI, secondary KPIs, charts, lists, CRUD per app
 - **Section 7: Visual Details** → Border radius, shadows, animations
 - **Section 8: CSS Variables** → Copy these EXACTLY into src/index.css
 
@@ -128,8 +128,6 @@ Copy the font URL from **Section 3** of design_brief.md into `index.html`:
 
 ### Step 5: Implement Dashboard.tsx
 
-Now implement the React component following the brief:
-
 ```typescript
 // 1. Imports (always use 'import type' for types!)
 import { useState, useEffect } from 'react';
@@ -137,7 +135,7 @@ import type { AppType1, AppType2 } from '@/types/app';
 import { LivingAppsService } from '@/services/livingAppsService';
 
 // 2. Follow Section 4 (Mobile) and Section 5 (Desktop) for layout
-// 3. Follow Section 6 for components (Hero, KPIs, Charts, Lists)
+// 3. Follow Section 6 for components (Hero, KPIs, Charts, Lists, CRUD)
 // 4. Follow Section 7 for visual details (radius, shadows, animations)
 ```
 
@@ -359,7 +357,10 @@ Before completing, verify EACH item against design_brief.md:
 **You MUST verify the dashboard is 100% complete before finishing:**
 
 - [ ] **Every app in app_metadata.json is used** - no data sources ignored
+- [ ] **Every app has FULL CRUD** - Create, Read, Update, Delete for EACH app
 - [ ] **Primary action works** (create new record via dialog/form)
+- [ ] **Edit works** for every app (pre-filled form, PATCH request)
+- [ ] **Delete works** for every app (confirmation dialog, DELETE request)
 - [ ] **Data displays correctly** (all KPIs calculated, lists populated)
 - [ ] **All states handled:**
   - [ ] Loading states for every data fetch
@@ -369,6 +370,8 @@ Before completing, verify EACH item against design_brief.md:
   - [ ] No "TODO" comments in code
   - [ ] No "Coming soon" messages
   - [ ] No hardcoded demo data
+- [ ] **CRUD feedback** - Toast messages for success/error on every operation
+- [ ] **Data refresh** - Lists update after create/update/delete
 
 **If ANY item above is unchecked, the dashboard is NOT complete. Fix it before deploying.**
 
@@ -379,17 +382,340 @@ Before completing, verify EACH item against design_brief.md:
 The dashboard is complete when:
 
 1. ✅ **User experience excellent**: Intuitive, clear, professional
-2. ✅ **Primary action button works** (with Dialog/Modal)
-3. ✅ All KPIs/Stats calculated correctly
-4. ✅ Loading state works (Skeleton, not empty page)
-5. ✅ Error handling implemented (friendly messages)
-6. ✅ Empty state implemented (helpful placeholders)
-7. ✅ Responsive design (Mobile + Desktop)
-8. ✅ No TypeScript errors (`npm run build`)
-9. ✅ No console errors in browser
-10. ✅ Business logic correct
-11. ✅ Living Apps API rules followed (dates, applookup, response)
-12. ✅ **All features complete** - nothing skipped or left as TODO
+2. ✅ **Full CRUD for EVERY app** - Create, Read, Update, Delete all work
+3. ✅ **Primary action button works** (with Dialog/Modal)
+4. ✅ **Edit records works** for every app (pre-filled form, saves changes)
+5. ✅ **Delete records works** for every app (with confirmation dialog)
+6. ✅ All KPIs/Stats calculated correctly
+7. ✅ Loading state works (Skeleton, not empty page)
+8. ✅ Error handling implemented (friendly messages)
+9. ✅ Empty state implemented (helpful placeholders)
+10. ✅ Responsive design (Mobile + Desktop)
+11. ✅ No TypeScript errors (`npm run build`)
+12. ✅ No console errors in browser
+13. ✅ Business logic correct
+14. ✅ Living Apps API rules followed (dates, applookup, response)
+15. ✅ **All features complete** - nothing skipped or left as TODO
+16. ✅ **CRUD feedback** - Toast messages on success/error for every operation
+
+---
+
+## Full CRUD Implementation (REQUIRED for Every App!)
+
+**⚠️ CRITICAL: Every app in the dashboard MUST have full CRUD operations.**
+
+The design_brief.md specifies CRUD operations for each app. You MUST implement ALL of them - Create, Read, Update, Delete - for EVERY app. No exceptions.
+
+### CRUD Architecture Pattern
+
+For each app, implement these components:
+
+1. **List/Table View** - Shows all records (Read)
+2. **Create/Edit Dialog** - Shared dialog for creating and editing (Create + Update)
+3. **Delete Confirmation Dialog** - Confirmation before deleting (Delete)
+4. **Data refresh** - After any mutation, refresh the data
+
+### Reusable CRUD Dialog Pattern
+
+Use a SINGLE dialog component for both Create and Edit per app:
+
+```typescript
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LivingAppsService } from '@/services/livingAppsService';
+import { toast } from '@/components/ui/use-toast';
+
+interface RecordDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  record?: MyAppRecord | null;  // null = Create mode, record = Edit mode
+  onSuccess: () => void;
+}
+
+function MyAppRecordDialog({ open, onOpenChange, record, onSuccess }: RecordDialogProps) {
+  const isEditing = !!record;
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: record?.fields.name ?? '',
+    value: record?.fields.value ?? 0,
+    // ... all fields with defaults
+  });
+
+  // Reset form when dialog opens with different record
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        name: record?.fields.name ?? '',
+        value: record?.fields.value ?? 0,
+      });
+    }
+  }, [open, record]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      if (isEditing) {
+        await LivingAppsService.updateMyAppRecord(record!.record_id, formData);
+        toast({ title: 'Gespeichert', description: 'Eintrag wurde aktualisiert.' });
+      } else {
+        await LivingAppsService.createMyAppRecord(formData);
+        toast({ title: 'Erstellt', description: 'Neuer Eintrag wurde erstellt.' });
+      }
+      onOpenChange(false);
+      onSuccess();  // ← Triggers data refresh
+    } catch (err) {
+      toast({
+        title: 'Fehler',
+        description: `Fehler beim ${isEditing ? 'Speichern' : 'Erstellen'}: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEditing ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              required
+            />
+          </div>
+          {/* ... more fields ... */}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Abbrechen
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Speichert...' : (isEditing ? 'Speichern' : 'Erstellen')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Delete Confirmation Pattern
+
+**ALWAYS require confirmation before deleting!**
+
+```typescript
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+interface DeleteDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  recordName: string;  // What is being deleted (for display)
+  onConfirm: () => Promise<void>;
+}
+
+function DeleteConfirmDialog({ open, onOpenChange, recordName, onConfirm }: DeleteDialogProps) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await onConfirm();
+      toast({ title: 'Gelöscht', description: `"${recordName}" wurde gelöscht.` });
+      onOpenChange(false);
+    } catch (err) {
+      toast({
+        title: 'Fehler',
+        description: 'Eintrag konnte nicht gelöscht werden.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eintrag löschen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Möchtest du "{recordName}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleting ? 'Löscht...' : 'Löschen'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+```
+
+### CRUD List with Edit/Delete Actions
+
+```typescript
+import { Pencil, Trash2, Plus } from 'lucide-react';
+
+function MyAppList() {
+  const [records, setRecords] = useState<MyAppRecord[]>([]);
+  const [editRecord, setEditRecord] = useState<MyAppRecord | null>(null);
+  const [deleteRecord, setDeleteRecord] = useState<MyAppRecord | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  async function refreshData() {
+    const data = await LivingAppsService.getMyAppRecords();
+    setRecords(data);
+  }
+
+  async function handleDelete() {
+    if (!deleteRecord) return;
+    await LivingAppsService.deleteMyAppRecord(deleteRecord.record_id);
+    setDeleteRecord(null);
+    refreshData();
+  }
+
+  return (
+    <>
+      {/* Header with Create button */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Meine Einträge</h2>
+        <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Neu
+        </Button>
+      </div>
+
+      {/* Record list with inline edit/delete actions */}
+      {records.map((record) => (
+        <div key={record.record_id} className="flex items-center justify-between p-3 rounded-lg border">
+          <div>
+            <div className="font-medium">{record.fields.name}</div>
+            <div className="text-sm text-muted-foreground">{record.fields.description}</div>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setEditRecord(record)}
+              aria-label="Bearbeiten"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDeleteRecord(record)}
+              aria-label="Löschen"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      {/* Create Dialog (record=null → create mode) */}
+      <MyAppRecordDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        record={null}
+        onSuccess={refreshData}
+      />
+
+      {/* Edit Dialog (record=editRecord → edit mode) */}
+      <MyAppRecordDialog
+        open={!!editRecord}
+        onOpenChange={(open) => !open && setEditRecord(null)}
+        record={editRecord}
+        onSuccess={refreshData}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmDialog
+        open={!!deleteRecord}
+        onOpenChange={(open) => !open && setDeleteRecord(null)}
+        recordName={deleteRecord?.fields.name ?? ''}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+}
+```
+
+### CRUD Service Methods Pattern
+
+The generated `livingAppsService.ts` already includes GET and CREATE. You MUST also use UPDATE and DELETE:
+
+```typescript
+// These methods should already exist in livingAppsService.ts:
+
+// GET all records
+static async getMyAppRecords(): Promise<MyAppRecord[]> { ... }
+
+// CREATE a record
+static async createMyAppRecord(data: Partial<MyAppFields>): Promise<any> {
+  return this.request(`/apps/${APP_IDS.MY_APP}/records`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// UPDATE a record (PATCH - only changed fields)
+static async updateMyAppRecord(recordId: string, data: Partial<MyAppFields>): Promise<any> {
+  return this.request(`/apps/${APP_IDS.MY_APP}/records/${recordId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+// DELETE a record
+static async deleteMyAppRecord(recordId: string): Promise<any> {
+  return this.request(`/apps/${APP_IDS.MY_APP}/records/${recordId}`, {
+    method: 'DELETE',
+  });
+}
+```
+
+**⚠️ If `livingAppsService.ts` is missing update/delete methods, you MUST add them!**
+
+### CRUD Implementation Checklist
+
+For EVERY app in `app_metadata.json`, verify:
+- [ ] **Create** - Users can create new records via dialog/form
+- [ ] **Read** - Records are displayed in a list/table with all relevant fields
+- [ ] **Update** - Users can edit existing records (same form as create, pre-filled)
+- [ ] **Delete** - Users can delete records with confirmation dialog
+- [ ] **Feedback** - Toast messages for success and error on every operation
+- [ ] **Refresh** - Data refreshes after every mutation
+- [ ] **Loading states** - Submit buttons show loading state during operations
+- [ ] **Error handling** - Failed operations show error message, don't lose user input
 
 ---
 
