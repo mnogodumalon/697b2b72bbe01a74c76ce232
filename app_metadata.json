@@ -2,13 +2,28 @@
   "appgroup_id": "697b2b72bbe01a74c76ce232",
   "appgroup_name": "Werkzeugverwaltung",
   "apps": {
-    "mitarbeiter": {
-      "app_id": "697b2b318bccec961fdb7818",
-      "name": "Mitarbeiter",
+    "lagerorte": {
+      "app_id": "697b2b40f8a1c1f639e5c8be",
+      "name": "Lagerorte",
       "controls": {
-        "vorname": {
-          "identifier": "vorname",
-          "label": "Vorname",
+        "beschreibung": {
+          "identifier": "beschreibung",
+          "label": "Beschreibung",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "ortsbezeichnung": {
+          "identifier": "ortsbezeichnung",
+          "label": "Ortsbezeichnung",
           "type": "string",
           "subtype": "text",
           "fulltype": "string/text",
@@ -21,39 +36,9 @@
           "in_fulltext_search": false,
           "in_expert_search": true
         },
-        "nachname": {
-          "identifier": "nachname",
-          "label": "Nachname",
-          "type": "string",
-          "subtype": "text",
-          "fulltype": "string/text",
-          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "personalnummer": {
-          "identifier": "personalnummer",
-          "label": "Personalnummer",
-          "type": "string",
-          "subtype": "text",
-          "fulltype": "string/text",
-          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "abteilung": {
-          "identifier": "abteilung",
-          "label": "Abteilung",
+        "typ": {
+          "identifier": "typ",
+          "label": "Typ",
           "type": "lookup",
           "subtype": "select",
           "fulltype": "lookup/select",
@@ -66,21 +51,42 @@
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "elektroinstallation": "Elektroinstallation",
-            "wartung_service": "Wartung und Service",
-            "bauleitung": "Bauleitung",
-            "planung": "Planung",
-            "lager": "Lager",
-            "verwaltung": "Verwaltung"
+            "werkstatt": "Werkstatt",
+            "fahrzeug": "Fahrzeug",
+            "baustelle": "Baustelle",
+            "aussenlager": "Au\u00dfenlager",
+            "sonstiges": "Sonstiges"
           }
+        }
+      }
+    },
+    "werkzeugrueckgabe": {
+      "app_id": "697b2b42b0235053832268ab",
+      "name": "Werkzeugr\u00fcckgabe",
+      "controls": {
+        "ausgabe": {
+          "identifier": "ausgabe",
+          "label": "Ausgabe",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to a LivingApp record from the target lookup app 'Werkzeugausgabe' with the id `697b2b41d520e5a668295185` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://my.living-apps.de/rest/apps/697b2b41d520e5a668295185/<record-id>` or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b41d520e5a668295185"
         },
-        "telefonnummer": {
-          "identifier": "telefonnummer",
-          "label": "Telefonnummer",
-          "type": "string",
-          "subtype": "tel",
-          "fulltype": "string/tel",
-          "description": "A valid telephone number. Might include country prefix and should include area code (or `null`/`None`).",
+        "rueckgabedatum": {
+          "identifier": "rueckgabedatum",
+          "label": "R\u00fcckgabedatum",
+          "type": "date",
+          "subtype": "datetimeminute",
+          "fulltype": "date/datetimeminute",
+          "description": "A specific moment in time consisting of year, month, day, hour and minute. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` or `null`/`None`.\n\nFor example: `1879-03-14T11:30`.",
           "required": null,
           "in_list": true,
           "in_mobile_list": true,
@@ -89,23 +95,61 @@
           "in_fulltext_search": false,
           "in_expert_search": true
         },
-        "email": {
-          "identifier": "email",
-          "label": "E-Mail",
-          "type": "string",
-          "subtype": "email",
-          "fulltype": "string/email",
-          "description": "A valid email address (or `null`/`None`).",
+        "rueckgabe_lagerort": {
+          "identifier": "rueckgabe_lagerort",
+          "label": "R\u00fcckgabe-Lagerort",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to a LivingApp record from the target lookup app 'Lagerorte' with the id `697b2b40f8a1c1f639e5c8be` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://my.living-apps.de/rest/apps/697b2b40f8a1c1f639e5c8be/<record-id>` or `null`/`None`.",
           "required": null,
-          "in_list": false,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b40f8a1c1f639e5c8be"
+        },
+        "zustand_bei_rueckgabe": {
+          "identifier": "zustand_bei_rueckgabe",
+          "label": "Zustand bei R\u00fcckgabe",
+          "type": "lookup",
+          "subtype": "select",
+          "fulltype": "lookup/select",
+          "description": "One selected option of multiple available options (or `null`/`None`).\n\nThe available options are defined in the `lookup_data` attribute of this control.\n\nThe field value will be the key in this `lookup_data` attribute or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_data": {
+            "einwandfrei": "Einwandfrei",
+            "leichte_gebrauchsspuren": "Leichte Gebrauchsspuren",
+            "verschmutzt": "Verschmutzt",
+            "beschaedigt": "Besch\u00e4digt",
+            "defekt": "Defekt"
+          }
+        },
+        "beschaedigungen": {
+          "identifier": "beschaedigungen",
+          "label": "Besch\u00e4digungen",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
           "in_mobile_list": false,
           "in_text": false,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
         },
-        "notizen_mitarbeiter": {
-          "identifier": "notizen_mitarbeiter",
+        "notizen_rueckgabe": {
+          "identifier": "notizen_rueckgabe",
           "label": "Notizen",
           "type": "string",
           "subtype": "textarea",
@@ -373,11 +417,11 @@
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "akkuwerkzeug": "Akkuwerkzeug",
             "elektrowerkzeug": "Elektrowerkzeug",
             "handwerkzeug": "Handwerkzeug",
             "messgeraet": "Messger\u00e4t",
             "pruefgeraet": "Pr\u00fcfger\u00e4t",
+            "akkuwerkzeug": "Akkuwerkzeug",
             "leiter": "Leiter",
             "kabel_leitungen": "Kabel und Leitungen",
             "sonstiges": "Sonstiges"
@@ -515,28 +559,13 @@
         }
       }
     },
-    "lagerorte": {
-      "app_id": "697b2b40f8a1c1f639e5c8be",
-      "name": "Lagerorte",
+    "mitarbeiter": {
+      "app_id": "697b2b318bccec961fdb7818",
+      "name": "Mitarbeiter",
       "controls": {
-        "beschreibung": {
-          "identifier": "beschreibung",
-          "label": "Beschreibung",
-          "type": "string",
-          "subtype": "textarea",
-          "fulltype": "string/textarea",
-          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
-          "required": null,
-          "in_list": false,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "ortsbezeichnung": {
-          "identifier": "ortsbezeichnung",
-          "label": "Ortsbezeichnung",
+        "vorname": {
+          "identifier": "vorname",
+          "label": "Vorname",
           "type": "string",
           "subtype": "text",
           "fulltype": "string/text",
@@ -549,9 +578,39 @@
           "in_fulltext_search": false,
           "in_expert_search": true
         },
-        "typ": {
-          "identifier": "typ",
-          "label": "Typ",
+        "nachname": {
+          "identifier": "nachname",
+          "label": "Nachname",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "personalnummer": {
+          "identifier": "personalnummer",
+          "label": "Personalnummer",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "abteilung": {
+          "identifier": "abteilung",
+          "label": "Abteilung",
           "type": "lookup",
           "subtype": "select",
           "fulltype": "lookup/select",
@@ -564,105 +623,46 @@
           "in_fulltext_search": false,
           "in_expert_search": true,
           "lookup_data": {
-            "fahrzeug": "Fahrzeug",
-            "baustelle": "Baustelle",
-            "aussenlager": "Au\u00dfenlager",
-            "sonstiges": "Sonstiges",
-            "werkstatt": "Werkstatt"
-          }
-        }
-      }
-    },
-    "werkzeugrueckgabe": {
-      "app_id": "697b2b42b0235053832268ab",
-      "name": "Werkzeugr\u00fcckgabe",
-      "controls": {
-        "ausgabe": {
-          "identifier": "ausgabe",
-          "label": "Ausgabe",
-          "type": "applookup",
-          "subtype": "select",
-          "fulltype": "applookup/select",
-          "description": "A reference to a LivingApp record from the target lookup app 'Werkzeugausgabe' with the id `697b2b41d520e5a668295185` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://my.living-apps.de/rest/apps/697b2b41d520e5a668295185/<record-id>` or `null`/`None`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b41d520e5a668295185"
-        },
-        "rueckgabedatum": {
-          "identifier": "rueckgabedatum",
-          "label": "R\u00fcckgabedatum",
-          "type": "date",
-          "subtype": "datetimeminute",
-          "fulltype": "date/datetimeminute",
-          "description": "A specific moment in time consisting of year, month, day, hour and minute. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` or `null`/`None`.\n\nFor example: `1879-03-14T11:30`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": true,
-          "in_text": true,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true
-        },
-        "rueckgabe_lagerort": {
-          "identifier": "rueckgabe_lagerort",
-          "label": "R\u00fcckgabe-Lagerort",
-          "type": "applookup",
-          "subtype": "select",
-          "fulltype": "applookup/select",
-          "description": "A reference to a LivingApp record from the target lookup app 'Lagerorte' with the id `697b2b40f8a1c1f639e5c8be` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://my.living-apps.de/rest/apps/697b2b40f8a1c1f639e5c8be/<record-id>` or `null`/`None`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_app": "https://my.living-apps.de/rest/apps/697b2b40f8a1c1f639e5c8be"
-        },
-        "zustand_bei_rueckgabe": {
-          "identifier": "zustand_bei_rueckgabe",
-          "label": "Zustand bei R\u00fcckgabe",
-          "type": "lookup",
-          "subtype": "select",
-          "fulltype": "lookup/select",
-          "description": "One selected option of multiple available options (or `null`/`None`).\n\nThe available options are defined in the `lookup_data` attribute of this control.\n\nThe field value will be the key in this `lookup_data` attribute or `null`/`None`.",
-          "required": null,
-          "in_list": true,
-          "in_mobile_list": false,
-          "in_text": false,
-          "in_structured_search": false,
-          "in_fulltext_search": false,
-          "in_expert_search": true,
-          "lookup_data": {
-            "einwandfrei": "Einwandfrei",
-            "leichte_gebrauchsspuren": "Leichte Gebrauchsspuren",
-            "verschmutzt": "Verschmutzt",
-            "beschaedigt": "Besch\u00e4digt",
-            "defekt": "Defekt"
+            "elektroinstallation": "Elektroinstallation",
+            "wartung_service": "Wartung und Service",
+            "bauleitung": "Bauleitung",
+            "planung": "Planung",
+            "lager": "Lager",
+            "verwaltung": "Verwaltung"
           }
         },
-        "beschaedigungen": {
-          "identifier": "beschaedigungen",
-          "label": "Besch\u00e4digungen",
+        "telefonnummer": {
+          "identifier": "telefonnummer",
+          "label": "Telefonnummer",
           "type": "string",
-          "subtype": "textarea",
-          "fulltype": "string/textarea",
-          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "subtype": "tel",
+          "fulltype": "string/tel",
+          "description": "A valid telephone number. Might include country prefix and should include area code (or `null`/`None`).",
           "required": null,
           "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "email": {
+          "identifier": "email",
+          "label": "E-Mail",
+          "type": "string",
+          "subtype": "email",
+          "fulltype": "string/email",
+          "description": "A valid email address (or `null`/`None`).",
+          "required": null,
+          "in_list": false,
           "in_mobile_list": false,
           "in_text": false,
           "in_structured_search": false,
           "in_fulltext_search": false,
           "in_expert_search": true
         },
-        "notizen_rueckgabe": {
-          "identifier": "notizen_rueckgabe",
+        "notizen_mitarbeiter": {
+          "identifier": "notizen_mitarbeiter",
           "label": "Notizen",
           "type": "string",
           "subtype": "textarea",
@@ -681,11 +681,11 @@
   },
   "metadata": {
     "apps_list": [
-      "Mitarbeiter",
+      "Lagerorte",
+      "Werkzeugr\u00fcckgabe",
       "Werkzeugausgabe",
       "Werkzeuge",
-      "Lagerorte",
-      "Werkzeugr\u00fcckgabe"
+      "Mitarbeiter"
     ]
   }
 }

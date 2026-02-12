@@ -8,7 +8,7 @@
       "maxExportBatchSize": 200,
       "maxQueueSize": 8192
     },
-    "tengu_claudeai_mcp_connectors": true,
+    "tengu_claudeai_mcp_connectors": false,
     "tengu_event_sampling_config": {},
     "tengu_log_segment_events": false,
     "tengu_log_datadog_events": true,
@@ -32,16 +32,10 @@
     "tengu_system_prompt_global_cache": false,
     "enhanced_telemetry_beta": false,
     "tengu_cache_plum_violet": false,
-    "tengu_streaming_tool_execution2": true,
-    "tengu_tool_search_unsupported_models": [
-      "haiku"
-    ],
-    "tengu_attribution_header": false,
-    "tengu_workout2": true,
-    "tengu_file_write_optimization": false
+    "tengu_streaming_tool_execution2": true
   },
-  "firstStartTime": "2026-02-12T11:12:38.329Z",
-  "userID": "406bce16dc5a436bd3030304b7597239d9102ca7f2ae61ffbbd11eb240105cc9",
+  "firstStartTime": "2026-02-12T11:20:36.949Z",
+  "userID": "2015aee51e8921b03b4c39ffcb55f77e12f305ff7f1ca57f1d97ac6fce9b48d8",
   "sonnet45MigrationComplete": true,
   "opus45MigrationComplete": true,
   "opusProMigrationComplete": true,
@@ -49,6 +43,6 @@
   "penguinModeOrgEnabled": true,
   "clientDataCache": {
     "data": null,
-    "timestamp": 1770894759873
+    "timestamp": 1770895238738
   }
 }

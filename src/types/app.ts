@@ -1,17 +1,27 @@
 // AUTOMATICALLY GENERATED TYPES - DO NOT EDIT
 
-export interface Mitarbeiter {
+export interface Lagerorte {
   record_id: string;
   createdat: string;
   updatedat: string | null;
   fields: {
-    vorname?: string;
-    nachname?: string;
-    personalnummer?: string;
-    abteilung?: 'elektroinstallation' | 'wartung_service' | 'bauleitung' | 'planung' | 'lager' | 'verwaltung';
-    telefonnummer?: string;
-    email?: string;
-    notizen_mitarbeiter?: string;
+    beschreibung?: string;
+    ortsbezeichnung?: string;
+    typ?: 'werkstatt' | 'fahrzeug' | 'baustelle' | 'aussenlager' | 'sonstiges';
+  };
+}
+
+export interface Werkzeugrueckgabe {
+  record_id: string;
+  createdat: string;
+  updatedat: string | null;
+  fields: {
+    ausgabe?: string; // applookup -> URL zu 'Werkzeugausgabe' Record
+    rueckgabedatum?: string; // Format: YYYY-MM-DD oder ISO String
+    rueckgabe_lagerort?: string; // applookup -> URL zu 'Lagerorte' Record
+    zustand_bei_rueckgabe?: 'einwandfrei' | 'leichte_gebrauchsspuren' | 'verschmutzt' | 'beschaedigt' | 'defekt';
+    beschaedigungen?: string;
+    notizen_rueckgabe?: string;
   };
 }
 
@@ -43,7 +53,7 @@ export interface Werkzeuge {
     hersteller?: string;
     modellnummer?: string;
     seriennummer?: string;
-    kategorie?: 'akkuwerkzeug' | 'elektrowerkzeug' | 'handwerkzeug' | 'messgeraet' | 'pruefgeraet' | 'leiter' | 'kabel_leitungen' | 'sonstiges';
+    kategorie?: 'elektrowerkzeug' | 'handwerkzeug' | 'messgeraet' | 'pruefgeraet' | 'akkuwerkzeug' | 'leiter' | 'kabel_leitungen' | 'sonstiges';
     anschaffungsdatum?: string; // Format: YYYY-MM-DD oder ISO String
     anschaffungspreis?: number;
     aktueller_lagerort?: string; // applookup -> URL zu 'Lagerorte' Record
@@ -55,42 +65,32 @@ export interface Werkzeuge {
   };
 }
 
-export interface Lagerorte {
+export interface Mitarbeiter {
   record_id: string;
   createdat: string;
   updatedat: string | null;
   fields: {
-    beschreibung?: string;
-    ortsbezeichnung?: string;
-    typ?: 'fahrzeug' | 'baustelle' | 'aussenlager' | 'sonstiges' | 'werkstatt';
-  };
-}
-
-export interface Werkzeugrueckgabe {
-  record_id: string;
-  createdat: string;
-  updatedat: string | null;
-  fields: {
-    ausgabe?: string; // applookup -> URL zu 'Werkzeugausgabe' Record
-    rueckgabedatum?: string; // Format: YYYY-MM-DD oder ISO String
-    rueckgabe_lagerort?: string; // applookup -> URL zu 'Lagerorte' Record
-    zustand_bei_rueckgabe?: 'einwandfrei' | 'leichte_gebrauchsspuren' | 'verschmutzt' | 'beschaedigt' | 'defekt';
-    beschaedigungen?: string;
-    notizen_rueckgabe?: string;
+    vorname?: string;
+    nachname?: string;
+    personalnummer?: string;
+    abteilung?: 'elektroinstallation' | 'wartung_service' | 'bauleitung' | 'planung' | 'lager' | 'verwaltung';
+    telefonnummer?: string;
+    email?: string;
+    notizen_mitarbeiter?: string;
   };
 }
 
 export const APP_IDS = {
-  MITARBEITER: '697b2b318bccec961fdb7818',
-  WERKZEUGAUSGABE: '697b2b41d520e5a668295185',
-  WERKZEUGE: '697b2b4092d14994749ca71b',
   LAGERORTE: '697b2b40f8a1c1f639e5c8be',
   WERKZEUGRUECKGABE: '697b2b42b0235053832268ab',
+  WERKZEUGAUSGABE: '697b2b41d520e5a668295185',
+  WERKZEUGE: '697b2b4092d14994749ca71b',
+  MITARBEITER: '697b2b318bccec961fdb7818',
 } as const;
 
 // Helper Types for creating new records
-export type CreateMitarbeiter = Mitarbeiter['fields'];
-export type CreateWerkzeugausgabe = Werkzeugausgabe['fields'];
-export type CreateWerkzeuge = Werkzeuge['fields'];
 export type CreateLagerorte = Lagerorte['fields'];
 export type CreateWerkzeugrueckgabe = Werkzeugrueckgabe['fields'];
+export type CreateWerkzeugausgabe = Werkzeugausgabe['fields'];
+export type CreateWerkzeuge = Werkzeuge['fields'];
+export type CreateMitarbeiter = Mitarbeiter['fields'];
