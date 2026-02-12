@@ -1,0 +1,11 @@
+{
+  "sessions": [
+    {
+      "id": "d5eed0e1-225b-4d8b-ae22-64bc20a9b427",
+      "name": "2026-02-12 11:22 - Initial build: Werkzeugverwalt...",
+      "created_at": "2026-02-12T11:22:26.899741Z",
+      "last_used": "2026-02-12T11:22:26.899741Z"
+    }
+  ],
+  "active_session": "d5eed0e1-225b-4d8b-ae22-64bc20a9b427"
+}
